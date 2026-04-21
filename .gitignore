@@ -1,0 +1,28 @@
+# MongoDB binary distribution
+mongodb-4.4.0/
+mongodb-linux-x86_64-*.tgz
+
+# WiredTiger database files
+data/
+data_instrumented/
+
+# Log files
+logs/
+*.log
+
+# Binary perf captures (large, not human-readable — text reports are in repo)
+perf_asc.data
+perf_desc.data
+
+# FlameGraph tooling (third-party repo, not owned code)
+FlameGraph/
+
+# PDF files (copyrighted source material)
+*.pdf
+
+# Phase 3 source build artifacts
+mongo_source/
+/tmp/mongo_build.log
+
+# Misc
+.DS_Store
