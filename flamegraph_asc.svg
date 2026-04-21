@@ -1,0 +1,2074 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" width="1600" height="854" onload="init(evt)" viewBox="0 0 1600 854" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<!-- Flame graph stack visualization. See https://github.com/brendangregg/FlameGraph for latest version, and http://www.brendangregg.com/flamegraphs.html for examples. -->
+<!-- NOTES:  -->
+<defs>
+	<linearGradient id="background" y1="0" y2="1" x1="0" x2="0" >
+		<stop stop-color="#eeeeee" offset="5%" />
+		<stop stop-color="#eeeeb0" offset="95%" />
+	</linearGradient>
+</defs>
+<style type="text/css">
+	text { font-family:Verdana; font-size:12px; fill:rgb(0,0,0); }
+	#search, #ignorecase { opacity:0.1; cursor:pointer; }
+	#search:hover, #search.show, #ignorecase:hover, #ignorecase.show { opacity:1; }
+	#subtitle { text-anchor:middle; font-color:rgb(160,160,160); }
+	#title { text-anchor:middle; font-size:17px}
+	#unzoom { cursor:pointer; }
+	#frames > *:hover { stroke:black; stroke-width:0.5; cursor:pointer; }
+	.hide { display:none; }
+	.parent { opacity:0.5; }
+</style>
+<script type="text/ecmascript">
+<![CDATA[
+	"use strict";
+	var details, searchbtn, unzoombtn, matchedtxt, svg, searching, currentSearchTerm, ignorecase, ignorecaseBtn;
+	function init(evt) {
+		details = document.getElementById("details").firstChild;
+		searchbtn = document.getElementById("search");
+		ignorecaseBtn = document.getElementById("ignorecase");
+		unzoombtn = document.getElementById("unzoom");
+		matchedtxt = document.getElementById("matched");
+		svg = document.getElementsByTagName("svg")[0];
+		searching = 0;
+		currentSearchTerm = null;
+
+		// use GET parameters to restore a flamegraphs state.
+		var params = get_params();
+		if (params.x && params.y)
+			zoom(find_group(document.querySelector('[x="' + params.x + '"][y="' + params.y + '"]')));
+                if (params.s) search(params.s);
+	}
+
+	// event listeners
+	window.addEventListener("click", function(e) {
+		var target = find_group(e.target);
+		if (target) {
+			if (target.nodeName == "a") {
+				if (e.ctrlKey === false) return;
+				e.preventDefault();
+			}
+			if (target.classList.contains("parent")) unzoom(true);
+			zoom(target);
+			if (!document.querySelector('.parent')) {
+				// we have basically done a clearzoom so clear the url
+				var params = get_params();
+				if (params.x) delete params.x;
+				if (params.y) delete params.y;
+				history.replaceState(null, null, parse_params(params));
+				unzoombtn.classList.add("hide");
+				return;
+			}
+
+			// set parameters for zoom state
+			var el = target.querySelector("rect");
+			if (el && el.attributes && el.attributes.y && el.attributes._orig_x) {
+				var params = get_params()
+				params.x = el.attributes._orig_x.value;
+				params.y = el.attributes.y.value;
+				history.replaceState(null, null, parse_params(params));
+			}
+		}
+		else if (e.target.id == "unzoom") clearzoom();
+		else if (e.target.id == "search") search_prompt();
+		else if (e.target.id == "ignorecase") toggle_ignorecase();
+	}, false)
+
+	// mouse-over for info
+	// show
+	window.addEventListener("mouseover", function(e) {
+		var target = find_group(e.target);
+		if (target) details.nodeValue = "Function: " + g_to_text(target);
+	}, false)
+
+	// clear
+	window.addEventListener("mouseout", function(e) {
+		var target = find_group(e.target);
+		if (target) details.nodeValue = ' ';
+	}, false)
+
+	// ctrl-F for search
+	// ctrl-I to toggle case-sensitive search
+	window.addEventListener("keydown",function (e) {
+		if (e.keyCode === 114 || (e.ctrlKey && e.keyCode === 70)) {
+			e.preventDefault();
+			search_prompt();
+		}
+		else if (e.ctrlKey && e.keyCode === 73) {
+			e.preventDefault();
+			toggle_ignorecase();
+		}
+	}, false)
+
+	// functions
+	function get_params() {
+		var params = {};
+		var paramsarr = window.location.search.substr(1).split('&');
+		for (var i = 0; i < paramsarr.length; ++i) {
+			var tmp = paramsarr[i].split("=");
+			if (!tmp[0] || !tmp[1]) continue;
+			params[tmp[0]]  = decodeURIComponent(tmp[1]);
+		}
+		return params;
+	}
+	function parse_params(params) {
+		var uri = "?";
+		for (var key in params) {
+			uri += key + '=' + encodeURIComponent(params[key]) + '&';
+		}
+		if (uri.slice(-1) == "&")
+			uri = uri.substring(0, uri.length - 1);
+		if (uri == '?')
+			uri = window.location.href.split('?')[0];
+		return uri;
+	}
+	function find_child(node, selector) {
+		var children = node.querySelectorAll(selector);
+		if (children.length) return children[0];
+	}
+	function find_group(node) {
+		var parent = node.parentElement;
+		if (!parent) return;
+		if (parent.id == "frames") return node;
+		return find_group(parent);
+	}
+	function orig_save(e, attr, val) {
+		if (e.attributes["_orig_" + attr] != undefined) return;
+		if (e.attributes[attr] == undefined) return;
+		if (val == undefined) val = e.attributes[attr].value;
+		e.setAttribute("_orig_" + attr, val);
+	}
+	function orig_load(e, attr) {
+		if (e.attributes["_orig_"+attr] == undefined) return;
+		e.attributes[attr].value = e.attributes["_orig_" + attr].value;
+		e.removeAttribute("_orig_"+attr);
+	}
+	function g_to_text(e) {
+		var text = find_child(e, "title").firstChild.nodeValue;
+		return (text)
+	}
+	function g_to_func(e) {
+		var func = g_to_text(e);
+		// if there's any manipulation we want to do to the function
+		// name before it's searched, do it here before returning.
+		return (func);
+	}
+	function update_text(e) {
+		var r = find_child(e, "rect");
+		var t = find_child(e, "text");
+		var w = parseFloat(r.attributes.width.value) -3;
+		var txt = find_child(e, "title").textContent.replace(/\([^(]*\)$/,"");
+		t.attributes.x.value = parseFloat(r.attributes.x.value) + 3;
+
+		// Smaller than this size won't fit anything
+		if (w < 2 * 12 * 0.59) {
+			t.textContent = "";
+			return;
+		}
+
+		t.textContent = txt;
+		var sl = t.getSubStringLength(0, txt.length);
+		// check if only whitespace or if we can fit the entire string into width w
+		if (/^ *$/.test(txt) || sl < w)
+			return;
+
+		// this isn't perfect, but gives a good starting point
+		// and avoids calling getSubStringLength too often
+		var start = Math.floor((w/sl) * txt.length);
+		for (var x = start; x > 0; x = x-2) {
+			if (t.getSubStringLength(0, x + 2) <= w) {
+				t.textContent = txt.substring(0, x) + "..";
+				return;
+			}
+		}
+		t.textContent = "";
+	}
+
+	// zoom
+	function zoom_reset(e) {
+		if (e.attributes != undefined) {
+			orig_load(e, "x");
+			orig_load(e, "width");
+		}
+		if (e.childNodes == undefined) return;
+		for (var i = 0, c = e.childNodes; i < c.length; i++) {
+			zoom_reset(c[i]);
+		}
+	}
+	function zoom_child(e, x, ratio) {
+		if (e.attributes != undefined) {
+			if (e.attributes.x != undefined) {
+				orig_save(e, "x");
+				e.attributes.x.value = (parseFloat(e.attributes.x.value) - x - 10) * ratio + 10;
+				if (e.tagName == "text")
+					e.attributes.x.value = find_child(e.parentNode, "rect[x]").attributes.x.value + 3;
+			}
+			if (e.attributes.width != undefined) {
+				orig_save(e, "width");
+				e.attributes.width.value = parseFloat(e.attributes.width.value) * ratio;
+			}
+		}
+
+		if (e.childNodes == undefined) return;
+		for (var i = 0, c = e.childNodes; i < c.length; i++) {
+			zoom_child(c[i], x - 10, ratio);
+		}
+	}
+	function zoom_parent(e) {
+		if (e.attributes) {
+			if (e.attributes.x != undefined) {
+				orig_save(e, "x");
+				e.attributes.x.value = 10;
+			}
+			if (e.attributes.width != undefined) {
+				orig_save(e, "width");
+				e.attributes.width.value = parseInt(svg.width.baseVal.value) - (10 * 2);
+			}
+		}
+		if (e.childNodes == undefined) return;
+		for (var i = 0, c = e.childNodes; i < c.length; i++) {
+			zoom_parent(c[i]);
+		}
+	}
+	function zoom(node) {
+		var attr = find_child(node, "rect").attributes;
+		var width = parseFloat(attr.width.value);
+		var xmin = parseFloat(attr.x.value);
+		var xmax = parseFloat(xmin + width);
+		var ymin = parseFloat(attr.y.value);
+		var ratio = (svg.width.baseVal.value - 2 * 10) / width;
+
+		// XXX: Workaround for JavaScript float issues (fix me)
+		var fudge = 0.0001;
+
+		unzoombtn.classList.remove("hide");
+
+		var el = document.getElementById("frames").children;
+		for (var i = 0; i < el.length; i++) {
+			var e = el[i];
+			var a = find_child(e, "rect").attributes;
+			var ex = parseFloat(a.x.value);
+			var ew = parseFloat(a.width.value);
+			var upstack;
+			// Is it an ancestor
+			if (0 == 0) {
+				upstack = parseFloat(a.y.value) > ymin;
+			} else {
+				upstack = parseFloat(a.y.value) < ymin;
+			}
+			if (upstack) {
+				// Direct ancestor
+				if (ex <= xmin && (ex+ew+fudge) >= xmax) {
+					e.classList.add("parent");
+					zoom_parent(e);
+					update_text(e);
+				}
+				// not in current path
+				else
+					e.classList.add("hide");
+			}
+			// Children maybe
+			else {
+				// no common path
+				if (ex < xmin || ex + fudge >= xmax) {
+					e.classList.add("hide");
+				}
+				else {
+					zoom_child(e, xmin, ratio);
+					update_text(e);
+				}
+			}
+		}
+		search();
+	}
+	function unzoom(dont_update_text) {
+		unzoombtn.classList.add("hide");
+		var el = document.getElementById("frames").children;
+		for(var i = 0; i < el.length; i++) {
+			el[i].classList.remove("parent");
+			el[i].classList.remove("hide");
+			zoom_reset(el[i]);
+			if(!dont_update_text) update_text(el[i]);
+		}
+		search();
+	}
+	function clearzoom() {
+		unzoom();
+
+		// remove zoom state
+		var params = get_params();
+		if (params.x) delete params.x;
+		if (params.y) delete params.y;
+		history.replaceState(null, null, parse_params(params));
+	}
+
+	// search
+	function toggle_ignorecase() {
+		ignorecase = !ignorecase;
+		if (ignorecase) {
+			ignorecaseBtn.classList.add("show");
+		} else {
+			ignorecaseBtn.classList.remove("show");
+		}
+		reset_search();
+		search();
+	}
+	function reset_search() {
+		var el = document.querySelectorAll("#frames rect");
+		for (var i = 0; i < el.length; i++) {
+			orig_load(el[i], "fill")
+		}
+		var params = get_params();
+		delete params.s;
+		history.replaceState(null, null, parse_params(params));
+	}
+	function search_prompt() {
+		if (!searching) {
+			var term = prompt("Enter a search term (regexp " +
+			    "allowed, eg: ^ext4_)"
+			    + (ignorecase ? ", ignoring case" : "")
+			    + "\nPress Ctrl-i to toggle case sensitivity", "");
+			if (term != null) search(term);
+		} else {
+			reset_search();
+			searching = 0;
+			currentSearchTerm = null;
+			searchbtn.classList.remove("show");
+			searchbtn.firstChild.nodeValue = "Search"
+			matchedtxt.classList.add("hide");
+			matchedtxt.firstChild.nodeValue = ""
+		}
+	}
+	function search(term) {
+		if (term) currentSearchTerm = term;
+		if (currentSearchTerm === null) return;
+
+		var re = new RegExp(currentSearchTerm, ignorecase ? 'i' : '');
+		var el = document.getElementById("frames").children;
+		var matches = new Object();
+		var maxwidth = 0;
+		for (var i = 0; i < el.length; i++) {
+			var e = el[i];
+			var func = g_to_func(e);
+			var rect = find_child(e, "rect");
+			if (func == null || rect == null)
+				continue;
+
+			// Save max width. Only works as we have a root frame
+			var w = parseFloat(rect.attributes.width.value);
+			if (w > maxwidth)
+				maxwidth = w;
+
+			if (func.match(re)) {
+				// highlight
+				var x = parseFloat(rect.attributes.x.value);
+				orig_save(rect, "fill");
+				rect.attributes.fill.value = "rgb(230,0,230)";
+
+				// remember matches
+				if (matches[x] == undefined) {
+					matches[x] = w;
+				} else {
+					if (w > matches[x]) {
+						// overwrite with parent
+						matches[x] = w;
+					}
+				}
+				searching = 1;
+			}
+		}
+		if (!searching)
+			return;
+		var params = get_params();
+		params.s = currentSearchTerm;
+		history.replaceState(null, null, parse_params(params));
+
+		searchbtn.classList.add("show");
+		searchbtn.firstChild.nodeValue = "Reset Search";
+
+		// calculate percent matched, excluding vertical overlap
+		var count = 0;
+		var lastx = -1;
+		var lastw = 0;
+		var keys = Array();
+		for (k in matches) {
+			if (matches.hasOwnProperty(k))
+				keys.push(k);
+		}
+		// sort the matched frames by their x location
+		// ascending, then width descending
+		keys.sort(function(a, b){
+			return a - b;
+		});
+		// Step through frames saving only the biggest bottom-up frames
+		// thanks to the sort order. This relies on the tree property
+		// where children are always smaller than their parents.
+		var fudge = 0.0001;	// JavaScript floating point
+		for (var k in keys) {
+			var x = parseFloat(keys[k]);
+			var w = matches[keys[k]];
+			if (x >= lastx + lastw - fudge) {
+				count += w;
+				lastx = x;
+				lastw = w;
+			}
+		}
+		// display matched percent
+		matchedtxt.classList.remove("hide");
+		var pct = 100 * count / maxwidth;
+		if (pct != 100) pct = pct.toFixed(1)
+		matchedtxt.firstChild.nodeValue = "Matched: " + pct + "%";
+	}
+]]>
+</script>
+<rect x="0.0" y="0" width="1600.0" height="854.0" fill="url(#background)"  />
+<text id="title" x="800.00" y="24" >SERVER-56274: TTL ASC (fast run)</text>
+<text id="details" x="10.00" y="837" > </text>
+<text id="unzoom" x="10.00" y="24" class="hide">Reset Zoom</text>
+<text id="search" x="1490.00" y="24" >Search</text>
+<text id="ignorecase" x="1574.00" y="24" >ic</text>
+<text id="matched" x="1490.00" y="837" > </text>
+<g id="frames">
+<g >
+<title>__wt_btcur_insert (63,813,103 samples, 6.55%)</title><rect x="547.5" y="421" width="103.5" height="15.0" fill="rgb(206,7,1)" rx="2" ry="2" />
+<text  x="550.53" y="431.5" >__wt_btcur_i..</text>
+</g>
+<g >
+<title>mongo::PlanExecutorImpl::_getNextImpl (6,326,855 samples, 0.65%)</title><rect x="1268.7" y="549" width="10.3" height="15.0" fill="rgb(222,78,18)" rx="2" ry="2" />
+<text  x="1271.73" y="559.5" ></text>
+</g>
+<g >
+<title>__wt_config_get.part.0 (5,050,505 samples, 0.52%)</title><rect x="1287.2" y="181" width="8.2" height="15.0" fill="rgb(213,39,9)" rx="2" ry="2" />
+<text  x="1290.17" y="191.5" ></text>
+</g>
+<g >
+<title>clone3 (704,788,206 samples, 72.29%)</title><rect x="106.0" y="773" width="1142.2" height="15.0" fill="rgb(216,54,12)" rx="2" ry="2" />
+<text  x="108.98" y="783.5" >clone3</text>
+</g>
+<g >
+<title>clone3 (15,151,515 samples, 1.55%)</title><rect x="81.4" y="773" width="24.6" height="15.0" fill="rgb(216,54,12)" rx="2" ry="2" />
+<text  x="84.42" y="783.5" >c..</text>
+</g>
+<g >
+<title>std::thread::_State_impl&lt;std::thread::_Invoker&lt;std::tuple&lt;mongo::stdx::thread::thread&lt;mongo::ThreadPool::_startWorkerThread_inlock (39,019,423 samples, 4.00%)</title><rect x="18.2" y="741" width="63.2" height="15.0" fill="rgb(241,167,40)" rx="2" ry="2" />
+<text  x="21.19" y="751.5" >std::t..</text>
+</g>
+<g >
+<title>mongo::CollectionImpl::insertDocumentsForOplog (71,651,675 samples, 7.35%)</title><rect x="547.5" y="485" width="116.2" height="15.0" fill="rgb(210,26,6)" rx="2" ry="2" />
+<text  x="550.53" y="495.5" >mongo::Collect..</text>
+</g>
+<g >
+<title>[unknown] (8,206,486 samples, 0.84%)</title><rect x="1552.2" y="565" width="13.3" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="1555.19" y="575.5" ></text>
+</g>
+<g >
+<title>mongo::WiredTigerOplogManager::_updateOplogVisibilityLoop (15,151,515 samples, 1.55%)</title><rect x="81.4" y="725" width="24.6" height="15.0" fill="rgb(217,58,14)" rx="2" ry="2" />
+<text  x="84.42" y="735.5" >m..</text>
+</g>
+<g >
+<title>__vsnprintf_internal (5,050,505 samples, 0.52%)</title><rect x="1565.5" y="501" width="8.2" height="15.0" fill="rgb(237,150,35)" rx="2" ry="2" />
+<text  x="1568.49" y="511.5" ></text>
+</g>
+<g >
+<title>mongo::ParsedUpdate::parseRequest (7,590,922 samples, 0.78%)</title><rect x="1256.4" y="581" width="12.3" height="15.0" fill="rgb(238,151,36)" rx="2" ry="2" />
+<text  x="1259.42" y="591.5" ></text>
+</g>
+<g >
+<title>clone3 (35,040,980 samples, 3.59%)</title><rect x="1533.2" y="773" width="56.8" height="15.0" fill="rgb(216,54,12)" rx="2" ry="2" />
+<text  x="1536.21" y="783.5" >clone3</text>
+</g>
+<g >
+<title>mongo::IndexCatalogImpl::_indexKeys (22,770,806 samples, 2.34%)</title><rect x="1306.4" y="293" width="36.9" height="15.0" fill="rgb(244,183,43)" rx="2" ry="2" />
+<text  x="1309.38" y="303.5" >mon..</text>
+</g>
+<g >
+<title>mongo::WorkingSetCommon::fetch (36,329,913 samples, 3.73%)</title><rect x="1162.6" y="565" width="58.9" height="15.0" fill="rgb(243,179,42)" rx="2" ry="2" />
+<text  x="1165.63" y="575.5" >mongo:..</text>
+</g>
+<g >
+<title>[unknown] (5,050,505 samples, 0.52%)</title><rect x="1240.1" y="597" width="8.1" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="1243.05" y="607.5" ></text>
+</g>
+<g >
+<title>[unknown] (5,050,505 samples, 0.52%)</title><rect x="1240.1" y="613" width="8.1" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="1243.05" y="623.5" ></text>
+</g>
+<g >
+<title>start_thread (151,811,394 samples, 15.57%)</title><rect x="1287.2" y="757" width="246.0" height="15.0" fill="rgb(212,34,8)" rx="2" ry="2" />
+<text  x="1290.17" y="767.5" >start_thread</text>
+</g>
+<g >
+<title>clock_nanosleep@GLIBC_2.2.5 (5,050,505 samples, 0.52%)</title><rect x="1240.1" y="661" width="8.1" height="15.0" fill="rgb(240,165,39)" rx="2" ry="2" />
+<text  x="1243.05" y="671.5" ></text>
+</g>
+<g >
+<title>mongo::AbstractIndexAccessMethod::removeOneKey (115,615,213 samples, 11.86%)</title><rect x="120.5" y="501" width="187.4" height="15.0" fill="rgb(209,22,5)" rx="2" ry="2" />
+<text  x="123.51" y="511.5" >mongo::AbstractIndexAcce..</text>
+</g>
+<g >
+<title>mongo::FTDCFileManager::writeSampleAndRotateIfNeeded (10,071,995 samples, 1.03%)</title><rect x="1573.7" y="709" width="16.3" height="15.0" fill="rgb(227,102,24)" rx="2" ry="2" />
+<text  x="1576.68" y="719.5" ></text>
+</g>
+<g >
+<title>std::thread::_State_impl&lt;std::thread::_Invoker&lt;std::tuple&lt;mongo::stdx::thread::thread&lt;mongo::BackgroundJob::go (24,018,787 samples, 2.46%)</title><rect x="1248.2" y="741" width="39.0" height="15.0" fill="rgb(228,107,25)" rx="2" ry="2" />
+<text  x="1251.24" y="751.5" >std..</text>
+</g>
+<g >
+<title>mongo::ServiceStateMachine::_runNextInGuard (151,811,394 samples, 15.57%)</title><rect x="1287.2" y="565" width="246.0" height="15.0" fill="rgb(249,204,48)" rx="2" ry="2" />
+<text  x="1290.17" y="575.5" >mongo::ServiceStateMachine::_run..</text>
+</g>
+<g >
+<title>all (974,880,810 samples, 100%)</title><rect x="10.0" y="805" width="1580.0" height="15.0" fill="rgb(213,39,9)" rx="2" ry="2" />
+<text  x="13.00" y="815.5" ></text>
+</g>
+<g >
+<title>mongo::UpsertStage::doWork (6,326,855 samples, 0.65%)</title><rect x="1268.7" y="517" width="10.3" height="15.0" fill="rgb(247,194,46)" rx="2" ry="2" />
+<text  x="1271.73" y="527.5" ></text>
+</g>
+<g >
+<title>__nanosleep (5,050,505 samples, 0.52%)</title><rect x="1240.1" y="677" width="8.1" height="15.0" fill="rgb(252,217,52)" rx="2" ry="2" />
+<text  x="1243.05" y="687.5" ></text>
+</g>
+<g >
+<title>__GI___libc_open (8,206,486 samples, 0.84%)</title><rect x="1552.2" y="645" width="13.3" height="15.0" fill="rgb(249,202,48)" rx="2" ry="2" />
+<text  x="1555.19" y="655.5" ></text>
+</g>
+<g >
+<title>mongo::KeyString::BuilderBase&lt;mongo::BasicBufBuilder&lt;mongo::SharedBufferAllocator&gt; &gt;::_transition (8,115,782 samples, 0.83%)</title><rect x="46.4" y="437" width="13.2" height="15.0" fill="rgb(234,137,32)" rx="2" ry="2" />
+<text  x="49.44" y="447.5" ></text>
+</g>
+<g >
+<title>__session_begin_transaction (98,276,512 samples, 10.08%)</title><rect x="816.7" y="469" width="159.2" height="15.0" fill="rgb(244,182,43)" rx="2" ry="2" />
+<text  x="819.65" y="479.5" >__session_begin_tran..</text>
+</g>
+<g >
+<title>mongo::OpObserverRegistry::aboutToDelete (73,187,091 samples, 7.51%)</title><rect x="307.9" y="565" width="118.6" height="15.0" fill="rgb(219,65,15)" rx="2" ry="2" />
+<text  x="310.89" y="575.5" >mongo::OpObser..</text>
+</g>
+<g >
+<title>mongo::IndexCatalogImpl::createIndexEntry (6,801,753 samples, 0.70%)</title><rect x="1295.4" y="277" width="11.0" height="15.0" fill="rgb(246,189,45)" rx="2" ry="2" />
+<text  x="1298.35" y="287.5" ></text>
+</g>
+<g >
+<title>__wt_btcur_remove (79,560,665 samples, 8.16%)</title><rect x="178.9" y="437" width="129.0" height="15.0" fill="rgb(251,215,51)" rx="2" ry="2" />
+<text  x="181.94" y="447.5" >__wt_btcur_remove</text>
+</g>
+<g >
+<title>mongo::WiredTigerIndex::_handleVersionInfo (5,050,505 samples, 0.52%)</title><rect x="73.2" y="485" width="8.2" height="15.0" fill="rgb(224,89,21)" rx="2" ry="2" />
+<text  x="76.24" y="495.5" ></text>
+</g>
+<g >
+<title>int mongo::wiredTigerPrepareConflictRetry&lt;mongo::(anonymous namespace)::WiredTigerIndexCursorBase::seekWTCursor (21,308,490 samples, 2.19%)</title><rect x="782.1" y="501" width="34.6" height="15.0" fill="rgb(253,224,53)" rx="2" ry="2" />
+<text  x="785.12" y="511.5" >in..</text>
+</g>
+<g >
+<title>std::pair&lt;std::_Rb_tree_iterator&lt;mongo::repl::OpTimeAndWallTime&gt;, bool&gt; std::_Rb_tree&lt;mongo::repl::OpTimeAndWallTime, mongo::repl::OpTimeAndWallTime, std::_Identity&lt;mongo::repl::OpTimeAndWallTime&gt;, std::less&lt;mongo::repl::OpTimeAndWallTime&gt;, std::allocator&lt;mongo::repl::OpTimeAndWallTime&gt; &gt;::_M_insert_unique&lt;mongo::repl::OpTimeAndWallTime const&amp;&gt; (6,392,818 samples, 0.66%)</title><rect x="1229.7" y="469" width="10.4" height="15.0" fill="rgb(248,197,47)" rx="2" ry="2" />
+<text  x="1232.69" y="479.5" ></text>
+</g>
+<g >
+<title>mongo::WiredTigerIndex::insert (22,770,806 samples, 2.34%)</title><rect x="1306.4" y="261" width="36.9" height="15.0" fill="rgb(224,90,21)" rx="2" ry="2" />
+<text  x="1309.38" y="271.5" >mon..</text>
+</g>
+<g >
+<title>mongo::OpObserverRegistry::onDelete (146,329,738 samples, 15.01%)</title><rect x="426.5" y="565" width="237.2" height="15.0" fill="rgb(233,129,30)" rx="2" ry="2" />
+<text  x="429.50" y="575.5" >mongo::OpObserverRegistry::onDe..</text>
+</g>
+<g >
+<title>mongo::sleepsecs (5,050,505 samples, 0.52%)</title><rect x="1240.1" y="693" width="8.1" height="15.0" fill="rgb(253,222,53)" rx="2" ry="2" />
+<text  x="1243.05" y="703.5" ></text>
+</g>
+<g >
+<title>mongo::repl::_logOpsInner (71,651,675 samples, 7.35%)</title><rect x="547.5" y="501" width="116.2" height="15.0" fill="rgb(238,154,36)" rx="2" ry="2" />
+<text  x="550.53" y="511.5" >mongo::repl::_..</text>
+</g>
+<g >
+<title>mongo::repl::ReplicationCoordinatorImpl::_setStableTimestampForStorage (5,050,505 samples, 0.52%)</title><rect x="1279.0" y="629" width="8.2" height="15.0" fill="rgb(207,9,2)" rx="2" ry="2" />
+<text  x="1281.98" y="639.5" ></text>
+</g>
+<g >
+<title>__config_next (5,050,505 samples, 0.52%)</title><rect x="73.2" y="309" width="8.2" height="15.0" fill="rgb(215,46,11)" rx="2" ry="2" />
+<text  x="76.24" y="319.5" ></text>
+</g>
+<g >
+<title>__wt_txn_set_timestamp (17,742,692 samples, 1.82%)</title><rect x="1504.5" y="213" width="28.7" height="15.0" fill="rgb(216,53,12)" rx="2" ry="2" />
+<text  x="1507.45" y="223.5" >__..</text>
+</g>
+<g >
+<title>__memmove_avx_unaligned_erms (15,912,346 samples, 1.63%)</title><rect x="1466.6" y="213" width="25.8" height="15.0" fill="rgb(205,0,0)" rx="2" ry="2" />
+<text  x="1469.63" y="223.5" >_..</text>
+</g>
+<g >
+<title>mongo::CollectionImpl::deleteDocument (372,349,729 samples, 38.19%)</title><rect x="120.5" y="581" width="603.5" height="15.0" fill="rgb(242,174,41)" rx="2" ry="2" />
+<text  x="123.51" y="591.5" >mongo::CollectionImpl::deleteDocument</text>
+</g>
+<g >
+<title>mongo::RecoveryUnit::onCommit&lt;mongo::repl::_logOpsInner (11,443,323 samples, 1.17%)</title><rect x="1221.5" y="517" width="18.6" height="15.0" fill="rgb(215,49,11)" rx="2" ry="2" />
+<text  x="1224.51" y="527.5" ></text>
+</g>
+<g >
+<title>mongo::ErrmsgCommandDeprecated::run (5,050,505 samples, 0.52%)</title><rect x="1565.5" y="645" width="8.2" height="15.0" fill="rgb(207,11,2)" rx="2" ry="2" />
+<text  x="1568.49" y="655.5" ></text>
+</g>
+<g >
+<title>__config_getraw.constprop.1 (17,742,692 samples, 1.82%)</title><rect x="1504.5" y="165" width="28.7" height="15.0" fill="rgb(233,129,30)" rx="2" ry="2" />
+<text  x="1507.45" y="175.5" >__..</text>
+</g>
+<g >
+<title>execute_native_thread_routine (35,040,980 samples, 3.59%)</title><rect x="1533.2" y="757" width="56.8" height="15.0" fill="rgb(233,129,30)" rx="2" ry="2" />
+<text  x="1536.21" y="767.5" >execut..</text>
+</g>
+<g >
+<title>mongo::ThreadPool::_consumeTasks (39,019,423 samples, 4.00%)</title><rect x="18.2" y="709" width="63.2" height="15.0" fill="rgb(243,178,42)" rx="2" ry="2" />
+<text  x="21.19" y="719.5" >mongo:..</text>
+</g>
+<g >
+<title>mongo::IndexBuildsManager::setUpIndexBuild (5,050,505 samples, 0.52%)</title><rect x="73.2" y="613" width="8.2" height="15.0" fill="rgb(205,1,0)" rx="2" ry="2" />
+<text  x="76.24" y="623.5" ></text>
+</g>
+<g >
+<title>mongo::KeyString::BuilderBase&lt;mongo::BasicBufBuilder&lt;mongo::SharedBufferAllocator&gt; &gt;::appendRecordId (8,115,782 samples, 0.83%)</title><rect x="46.4" y="453" width="13.2" height="15.0" fill="rgb(226,99,23)" rx="2" ry="2" />
+<text  x="49.44" y="463.5" ></text>
+</g>
+<g >
+<title>__session_timestamp_transaction (5,050,505 samples, 0.52%)</title><rect x="1393.0" y="293" width="8.2" height="15.0" fill="rgb(253,224,53)" rx="2" ry="2" />
+<text  x="1396.03" y="303.5" ></text>
+</g>
+<g >
+<title>std::thread::_State_impl&lt;std::thread::_Invoker&lt;std::tuple&lt;mongo::stdx::thread::thread&lt;mongo::BackgroundJob::go (704,788,206 samples, 72.29%)</title><rect x="106.0" y="741" width="1142.2" height="15.0" fill="rgb(228,107,25)" rx="2" ry="2" />
+<text  x="108.98" y="751.5" >std::thread::_State_impl&lt;std::thread::_Invoker&lt;std::tuple&lt;mongo::stdx::thread::thread&lt;mongo::BackgroundJob::go</text>
+</g>
+<g >
+<title>std::thread::_State_impl&lt;std::thread::_Invoker&lt;std::tuple&lt;mongo::stdx::thread::thread&lt;void  (15,151,515 samples, 1.55%)</title><rect x="81.4" y="741" width="24.6" height="15.0" fill="rgb(206,6,1)" rx="2" ry="2" />
+<text  x="84.42" y="751.5" >s..</text>
+</g>
+<g >
+<title>__memmove_avx_unaligned_erms (11,711,994 samples, 1.20%)</title><rect x="1533.2" y="645" width="19.0" height="15.0" fill="rgb(205,0,0)" rx="2" ry="2" />
+<text  x="1536.21" y="655.5" ></text>
+</g>
+<g >
+<title>mongo::FTDCCompressor::addSample (10,071,995 samples, 1.03%)</title><rect x="1573.7" y="677" width="16.3" height="15.0" fill="rgb(219,64,15)" rx="2" ry="2" />
+<text  x="1576.68" y="687.5" ></text>
+</g>
+<g >
+<title>__curfile_search_near (6,008,952 samples, 0.62%)</title><rect x="1033.9" y="453" width="9.7" height="15.0" fill="rgb(243,178,42)" rx="2" ry="2" />
+<text  x="1036.86" y="463.5" ></text>
+</g>
+<g >
+<title>__curfile_insert (30,693,218 samples, 3.15%)</title><rect x="1343.3" y="309" width="49.7" height="15.0" fill="rgb(233,130,31)" rx="2" ry="2" />
+<text  x="1346.28" y="319.5" >__cur..</text>
+</g>
+<g >
+<title>mongo::OpObserverImpl::aboutToDelete (73,187,091 samples, 7.51%)</title><rect x="307.9" y="549" width="118.6" height="15.0" fill="rgb(208,15,3)" rx="2" ry="2" />
+<text  x="310.89" y="559.5" >mongo::OpObser..</text>
+</g>
+<g >
+<title>mongo::MultiIndexBlock::insert (16,827,581 samples, 1.73%)</title><rect x="32.3" y="549" width="27.3" height="15.0" fill="rgb(224,90,21)" rx="2" ry="2" />
+<text  x="35.32" y="559.5" >m..</text>
+</g>
+<g >
+<title>mongo::PlanStage::work (6,008,952 samples, 0.62%)</title><rect x="1033.9" y="549" width="9.7" height="15.0" fill="rgb(205,3,0)" rx="2" ry="2" />
+<text  x="1036.86" y="559.5" ></text>
+</g>
+<g >
+<title>mongo::WiredTigerBeginTxnBlock::WiredTigerBeginTxnBlock (134,021,989 samples, 13.75%)</title><rect x="816.7" y="485" width="217.2" height="15.0" fill="rgb(233,131,31)" rx="2" ry="2" />
+<text  x="819.65" y="495.5" >mongo::WiredTigerBeginTxnBlo..</text>
+</g>
+<g >
+<title>mongo::dotted_path_support::extractElementAtPathOrArrayAlongPath (8,711,799 samples, 0.89%)</title><rect x="32.3" y="437" width="14.1" height="15.0" fill="rgb(245,185,44)" rx="2" ry="2" />
+<text  x="35.32" y="447.5" ></text>
+</g>
+<g >
+<title>mongo::MultiIndexBlock::insertAllDocumentsInCollection (33,968,918 samples, 3.48%)</title><rect x="18.2" y="565" width="55.0" height="15.0" fill="rgb(223,86,20)" rx="2" ry="2" />
+<text  x="21.19" y="575.5" >mongo..</text>
+</g>
+<g >
+<title>WTJourn.Flusher (24,018,787 samples, 2.46%)</title><rect x="1248.2" y="789" width="39.0" height="15.0" fill="rgb(254,228,54)" rx="2" ry="2" />
+<text  x="1251.24" y="799.5" >WTJ..</text>
+</g>
+<g >
+<title>mongo::FTDCCollectorCollection::collect (24,968,985 samples, 2.56%)</title><rect x="1533.2" y="709" width="40.5" height="15.0" fill="rgb(208,14,3)" rx="2" ry="2" />
+<text  x="1536.21" y="719.5" >mon..</text>
+</g>
+<g >
+<title>mongo::BackgroundJob::jobBody (24,018,787 samples, 2.46%)</title><rect x="1248.2" y="725" width="39.0" height="15.0" fill="rgb(251,214,51)" rx="2" ry="2" />
+<text  x="1251.24" y="735.5" >mon..</text>
+</g>
+<g >
+<title>[unknown] (5,050,505 samples, 0.52%)</title><rect x="1240.1" y="581" width="8.1" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="1243.05" y="591.5" ></text>
+</g>
+<g >
+<title>mongo::repl::ReplicationCoordinatorImpl::_setMyLastDurableOpTimeAndWallTime (5,050,505 samples, 0.52%)</title><rect x="1279.0" y="661" width="8.2" height="15.0" fill="rgb(235,142,34)" rx="2" ry="2" />
+<text  x="1281.98" y="671.5" ></text>
+</g>
+<g >
+<title>mongo::AbstractIndexAccessMethod::getKeys (16,827,581 samples, 1.73%)</title><rect x="32.3" y="517" width="27.3" height="15.0" fill="rgb(247,197,47)" rx="2" ry="2" />
+<text  x="35.32" y="527.5" >m..</text>
+</g>
+<g >
+<title>mongo::(anonymous namespace)::WiredTigerIndexCursorBase::seekWTCursor (6,008,952 samples, 0.62%)</title><rect x="1033.9" y="485" width="9.7" height="15.0" fill="rgb(235,139,33)" rx="2" ry="2" />
+<text  x="1036.86" y="495.5" ></text>
+</g>
+<g >
+<title>mongo::repl::OplogEntryBase::serialize (23,307,639 samples, 2.39%)</title><rect x="1415.4" y="293" width="37.8" height="15.0" fill="rgb(252,216,51)" rx="2" ry="2" />
+<text  x="1418.43" y="303.5" >mon..</text>
+</g>
+<g >
+<title>__wt_config_get.part.0 (53,155,685 samples, 5.45%)</title><rect x="836.5" y="421" width="86.1" height="15.0" fill="rgb(213,39,9)" rx="2" ry="2" />
+<text  x="839.49" y="431.5" >__wt_confi..</text>
+</g>
+<g >
+<title>mongo::PlanExecutorImpl::_getNextImpl (699,737,701 samples, 71.78%)</title><rect x="106.0" y="629" width="1134.1" height="15.0" fill="rgb(222,78,18)" rx="2" ry="2" />
+<text  x="108.98" y="639.5" >mongo::PlanExecutorImpl::_getNextImpl</text>
+</g>
+<g >
+<title>mongo::RequiresCollectionStageBase&lt;mongo::Collection const*&gt;::doRestoreState (191,204,086 samples, 19.61%)</title><rect x="724.0" y="565" width="309.9" height="15.0" fill="rgb(213,37,9)" rx="2" ry="2" />
+<text  x="726.98" y="575.5" >mongo::RequiresCollectionStageBase&lt;mongo:..</text>
+</g>
+<g >
+<title>mongo::(anonymous namespace)::logOperation (108,563,712 samples, 11.14%)</title><rect x="487.7" y="533" width="176.0" height="15.0" fill="rgb(240,165,39)" rx="2" ry="2" />
+<text  x="490.71" y="543.5" >mongo::(anonymous name..</text>
+</g>
+<g >
+<title>mongo::BSONObj::getField (7,838,572 samples, 0.80%)</title><rect x="651.0" y="421" width="12.7" height="15.0" fill="rgb(252,216,51)" rx="2" ry="2" />
+<text  x="653.95" y="431.5" ></text>
+</g>
+<g >
+<title>__config_getraw.constprop.1 (53,155,685 samples, 5.45%)</title><rect x="836.5" y="405" width="86.1" height="15.0" fill="rgb(233,129,30)" rx="2" ry="2" />
+<text  x="839.49" y="415.5" >__config_g..</text>
+</g>
+<g >
+<title>__session_timestamp_transaction (17,742,692 samples, 1.82%)</title><rect x="1504.5" y="229" width="28.7" height="15.0" fill="rgb(253,224,53)" rx="2" ry="2" />
+<text  x="1507.45" y="239.5" >__..</text>
+</g>
+<g >
+<title>__wt_config_gets_def (5,050,505 samples, 0.52%)</title><rect x="1393.0" y="261" width="8.2" height="15.0" fill="rgb(239,160,38)" rx="2" ry="2" />
+<text  x="1396.03" y="271.5" ></text>
+</g>
+<g >
+<title>__wt_config_gets_def (17,742,692 samples, 1.82%)</title><rect x="1504.5" y="197" width="28.7" height="15.0" fill="rgb(239,160,38)" rx="2" ry="2" />
+<text  x="1507.45" y="207.5" >__..</text>
+</g>
+<g >
+<title>mongo::(anonymous namespace)::WiredTigerIndexCursorBase::restore (155,330,479 samples, 15.93%)</title><rect x="782.1" y="533" width="251.8" height="15.0" fill="rgb(213,38,9)" rx="2" ry="2" />
+<text  x="785.12" y="543.5" >mongo::(anonymous namespace)::Wir..</text>
+</g>
+<g >
+<title>[unknown] (8,206,486 samples, 0.84%)</title><rect x="1552.2" y="629" width="13.3" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="1555.19" y="639.5" ></text>
+</g>
+<g >
+<title>__rec_cell_build_leaf_key (8,719,606 samples, 0.89%)</title><rect x="18.2" y="485" width="14.1" height="15.0" fill="rgb(243,179,42)" rx="2" ry="2" />
+<text  x="21.19" y="495.5" ></text>
+</g>
+<g >
+<title>mongo::PlanStage::work (6,326,855 samples, 0.65%)</title><rect x="1268.7" y="533" width="10.3" height="15.0" fill="rgb(205,3,0)" rx="2" ry="2" />
+<text  x="1271.73" y="543.5" ></text>
+</g>
+<g >
+<title>__wt_config_collapse (5,050,505 samples, 0.52%)</title><rect x="1287.2" y="197" width="8.2" height="15.0" fill="rgb(223,85,20)" rx="2" ry="2" />
+<text  x="1290.17" y="207.5" ></text>
+</g>
+<g >
+<title>mongo::IndexCatalogImpl::createIndexOnEmptyCollection (6,801,753 samples, 0.70%)</title><rect x="1295.4" y="309" width="11.0" height="15.0" fill="rgb(252,217,51)" rx="2" ry="2" />
+<text  x="1298.35" y="319.5" ></text>
+</g>
+<g >
+<title>mongo::IndexBuildsCoordinator::_scanCollectionAndInsertKeysIntoSorter (33,968,918 samples, 3.48%)</title><rect x="18.2" y="597" width="55.0" height="15.0" fill="rgb(226,100,24)" rx="2" ry="2" />
+<text  x="21.19" y="607.5" >mongo..</text>
+</g>
+<g >
+<title>mongo::(anonymous namespace)::insertBatchAndHandleErrors (11,852,258 samples, 1.22%)</title><rect x="1287.2" y="389" width="19.2" height="15.0" fill="rgb(252,216,51)" rx="2" ry="2" />
+<text  x="1290.17" y="399.5" ></text>
+</g>
+<g >
+<title>mongo::BasicCommandWithReplyBuilderInterface::Invocation::run (5,050,505 samples, 0.52%)</title><rect x="1565.5" y="661" width="8.2" height="15.0" fill="rgb(223,84,20)" rx="2" ry="2" />
+<text  x="1568.49" y="671.5" ></text>
+</g>
+<g >
+<title>[unknown] (7,838,572 samples, 0.80%)</title><rect x="651.0" y="389" width="12.7" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="653.95" y="399.5" ></text>
+</g>
+<g >
+<title>mongo::BtreeKeyGenerator::_getKeysWithArray (16,827,581 samples, 1.73%)</title><rect x="32.3" y="469" width="27.3" height="15.0" fill="rgb(220,70,16)" rx="2" ry="2" />
+<text  x="35.32" y="479.5" >m..</text>
+</g>
+<g >
+<title>mongo::DurableCatalogImpl::createCollection (5,050,505 samples, 0.52%)</title><rect x="1287.2" y="309" width="8.2" height="15.0" fill="rgb(247,196,47)" rx="2" ry="2" />
+<text  x="1290.17" y="319.5" ></text>
+</g>
+<g >
+<title>mongo::(anonymous namespace)::CmdInsert::Invocation::runImpl (151,811,394 samples, 15.57%)</title><rect x="1287.2" y="421" width="246.0" height="15.0" fill="rgb(248,198,47)" rx="2" ry="2" />
+<text  x="1290.17" y="431.5" >mongo::(anonymous namespace)::Cm..</text>
+</g>
+<g >
+<title>[unknown] (7,838,572 samples, 0.80%)</title><rect x="651.0" y="341" width="12.7" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="653.95" y="351.5" ></text>
+</g>
+<g >
+<title>mongo::(anonymous namespace)::WiredTigerIndexCursorBase::seekWTCursor (21,308,490 samples, 2.19%)</title><rect x="782.1" y="517" width="34.6" height="15.0" fill="rgb(235,139,33)" rx="2" ry="2" />
+<text  x="785.12" y="527.5" >mo..</text>
+</g>
+<g >
+<title>[unknown] (5,050,505 samples, 0.52%)</title><rect x="89.6" y="645" width="8.2" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="92.61" y="655.5" ></text>
+</g>
+<g >
+<title>mongo::TTLMonitor::run (704,788,206 samples, 72.29%)</title><rect x="106.0" y="709" width="1142.2" height="15.0" fill="rgb(215,48,11)" rx="2" ry="2" />
+<text  x="108.98" y="719.5" >mongo::TTLMonitor::run</text>
+</g>
+<g >
+<title>mongo::IndexBuildsCoordinator::_setUpIndexBuildInner (5,050,505 samples, 0.52%)</title><rect x="73.2" y="629" width="8.2" height="15.0" fill="rgb(207,12,3)" rx="2" ry="2" />
+<text  x="76.24" y="639.5" ></text>
+</g>
+<g >
+<title>__wt_btcur_next (6,008,952 samples, 0.62%)</title><rect x="1033.9" y="421" width="9.7" height="15.0" fill="rgb(238,156,37)" rx="2" ry="2" />
+<text  x="1036.86" y="431.5" ></text>
+</g>
+<g >
+<title>mongo::FTDCBSONUtil::(anonymous namespace)::extractMetricsFromDocument (10,071,995 samples, 1.03%)</title><rect x="1573.7" y="645" width="16.3" height="15.0" fill="rgb(205,0,0)" rx="2" ry="2" />
+<text  x="1576.68" y="655.5" ></text>
+</g>
+<g >
+<title>mongo::OpObserverImpl::onInserts (72,673,672 samples, 7.45%)</title><rect x="1415.4" y="341" width="117.8" height="15.0" fill="rgb(209,22,5)" rx="2" ry="2" />
+<text  x="1418.43" y="351.5" >mongo::OpObser..</text>
+</g>
+<g >
+<title>[unknown] (5,050,505 samples, 0.52%)</title><rect x="89.6" y="629" width="8.2" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="92.61" y="639.5" ></text>
+</g>
+<g >
+<title>mongo::(anonymous namespace)::readFileAsString (11,711,994 samples, 1.20%)</title><rect x="1533.2" y="661" width="19.0" height="15.0" fill="rgb(244,182,43)" rx="2" ry="2" />
+<text  x="1536.21" y="671.5" ></text>
+</g>
+<g >
+<title>mongo::WiredTigerKVEngine::createGroupedRecordStore (5,050,505 samples, 0.52%)</title><rect x="1287.2" y="293" width="8.2" height="15.0" fill="rgb(238,151,36)" rx="2" ry="2" />
+<text  x="1290.17" y="303.5" ></text>
+</g>
+<g >
+<title>mongo::WiredTigerIndex::_handleVersionInfo (6,801,753 samples, 0.70%)</title><rect x="1295.4" y="213" width="11.0" height="15.0" fill="rgb(224,89,21)" rx="2" ry="2" />
+<text  x="1298.35" y="223.5" ></text>
+</g>
+<g >
+<title>mongo::BtreeAccessMethod::doGetKeys (16,827,581 samples, 1.73%)</title><rect x="32.3" y="501" width="27.3" height="15.0" fill="rgb(227,103,24)" rx="2" ry="2" />
+<text  x="35.32" y="511.5" >m..</text>
+</g>
+<g >
+<title>mongo::ThreadPool::_doOneTask (39,019,423 samples, 4.00%)</title><rect x="18.2" y="693" width="63.2" height="15.0" fill="rgb(222,81,19)" rx="2" ry="2" />
+<text  x="21.19" y="703.5" >mongo:..</text>
+</g>
+<g >
+<title>__curfile_insert (31,623,341 samples, 3.24%)</title><rect x="1453.2" y="245" width="51.3" height="15.0" fill="rgb(233,130,31)" rx="2" ry="2" />
+<text  x="1456.20" y="255.5" >__cur..</text>
+</g>
+<g >
+<title>mongo::(anonymous namespace)::makeCollection (11,852,258 samples, 1.22%)</title><rect x="1287.2" y="357" width="19.2" height="15.0" fill="rgb(208,17,4)" rx="2" ry="2" />
+<text  x="1290.17" y="367.5" ></text>
+</g>
+<g >
+<title>[unknown] (7,838,572 samples, 0.80%)</title><rect x="651.0" y="309" width="12.7" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="653.95" y="319.5" ></text>
+</g>
+<g >
+<title>mongo::ServiceStateMachine::_processMessage (151,811,394 samples, 15.57%)</title><rect x="1287.2" y="549" width="246.0" height="15.0" fill="rgb(253,225,53)" rx="2" ry="2" />
+<text  x="1290.17" y="559.5" >mongo::ServiceStateMachine::_pro..</text>
+</g>
+<g >
+<title>[unknown] (8,206,486 samples, 0.84%)</title><rect x="1552.2" y="533" width="13.3" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="1555.19" y="543.5" ></text>
+</g>
+<g >
+<title>ftdc (35,040,980 samples, 3.59%)</title><rect x="1533.2" y="789" width="56.8" height="15.0" fill="rgb(219,67,16)" rx="2" ry="2" />
+<text  x="1536.21" y="799.5" >ftdc</text>
+</g>
+<g >
+<title>__wt_config_collapse (6,801,753 samples, 0.70%)</title><rect x="1295.4" y="85" width="11.0" height="15.0" fill="rgb(223,85,20)" rx="2" ry="2" />
+<text  x="1298.35" y="95.5" ></text>
+</g>
+<g >
+<title>mongo::WiredTigerRecordStore::insertRecords (44,514,658 samples, 4.57%)</title><rect x="1343.3" y="341" width="72.1" height="15.0" fill="rgb(253,224,53)" rx="2" ry="2" />
+<text  x="1346.28" y="351.5" >mongo::W..</text>
+</g>
+<g >
+<title>[unknown] (10,101,010 samples, 1.04%)</title><rect x="81.4" y="693" width="16.4" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="84.42" y="703.5" ></text>
+</g>
+<g >
+<title>mongo::WriteUnitOfWork::commit (11,443,323 samples, 1.17%)</title><rect x="1221.5" y="581" width="18.6" height="15.0" fill="rgb(216,52,12)" rx="2" ry="2" />
+<text  x="1224.51" y="591.5" ></text>
+</g>
+<g >
+<title>pthread_cond_timedwait@@GLIBC_2.3.2 (5,050,505 samples, 0.52%)</title><rect x="10.0" y="709" width="8.2" height="15.0" fill="rgb(223,83,19)" rx="2" ry="2" />
+<text  x="13.00" y="719.5" ></text>
+</g>
+<g >
+<title>mongo::WiredTigerUtil::getMetadataCreate[abi:cxx11] (6,801,753 samples, 0.70%)</title><rect x="1295.4" y="165" width="11.0" height="15.0" fill="rgb(210,23,5)" rx="2" ry="2" />
+<text  x="1298.35" y="175.5" ></text>
+</g>
+<g >
+<title>__curmetadata_setkv (6,801,753 samples, 0.70%)</title><rect x="1295.4" y="117" width="11.0" height="15.0" fill="rgb(211,29,7)" rx="2" ry="2" />
+<text  x="1298.35" y="127.5" ></text>
+</g>
+<g >
+<title>__curfile_search (36,868,449 samples, 3.78%)</title><rect x="1102.9" y="501" width="59.7" height="15.0" fill="rgb(233,131,31)" rx="2" ry="2" />
+<text  x="1105.87" y="511.5" >__curf..</text>
+</g>
+<g >
+<title>__curfile_insert (63,813,103 samples, 6.55%)</title><rect x="547.5" y="437" width="103.5" height="15.0" fill="rgb(233,130,31)" rx="2" ry="2" />
+<text  x="550.53" y="447.5" >__curfile_in..</text>
+</g>
+<g >
+<title>__session_log_flush (5,050,505 samples, 0.52%)</title><rect x="1248.2" y="677" width="8.2" height="15.0" fill="rgb(214,44,10)" rx="2" ry="2" />
+<text  x="1251.24" y="687.5" ></text>
+</g>
+<g >
+<title>mongo::WiredTigerIndexStandard::WiredTigerIndexStandard (5,050,505 samples, 0.52%)</title><rect x="73.2" y="517" width="8.2" height="15.0" fill="rgb(233,128,30)" rx="2" ry="2" />
+<text  x="76.24" y="527.5" ></text>
+</g>
+<g >
+<title>mongo::CollectionImpl::insertDocumentsForOplog (49,366,033 samples, 5.06%)</title><rect x="1453.2" y="293" width="80.0" height="15.0" fill="rgb(210,26,6)" rx="2" ry="2" />
+<text  x="1456.20" y="303.5" >mongo::Co..</text>
+</g>
+<g >
+<title>[unknown] (7,838,572 samples, 0.80%)</title><rect x="651.0" y="325" width="12.7" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="653.95" y="335.5" ></text>
+</g>
+<g >
+<title>__config_getraw.constprop.1 (5,050,505 samples, 0.52%)</title><rect x="73.2" y="325" width="8.2" height="15.0" fill="rgb(233,129,30)" rx="2" ry="2" />
+<text  x="76.24" y="335.5" ></text>
+</g>
+<g >
+<title>mongo::CollectionShardingState::get (37,228,631 samples, 3.82%)</title><rect x="366.2" y="517" width="60.3" height="15.0" fill="rgb(205,4,0)" rx="2" ry="2" />
+<text  x="369.16" y="527.5" >mongo:..</text>
+</g>
+<g >
+<title>mongo::appendCollectionStorageStats (5,050,505 samples, 0.52%)</title><rect x="1565.5" y="613" width="8.2" height="15.0" fill="rgb(237,147,35)" rx="2" ry="2" />
+<text  x="1568.49" y="623.5" ></text>
+</g>
+<g >
+<title>__wt_config_gets_def (32,882,217 samples, 3.37%)</title><rect x="922.6" y="437" width="53.3" height="15.0" fill="rgb(239,160,38)" rx="2" ry="2" />
+<text  x="925.64" y="447.5" >__wt_..</text>
+</g>
+<g >
+<title>[unknown] (8,206,486 samples, 0.84%)</title><rect x="1552.2" y="517" width="13.3" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="1555.19" y="527.5" ></text>
+</g>
+<g >
+<title>mongo::PlanExecutorImpl::getNextSnapshotted (8,421,731 samples, 0.86%)</title><rect x="59.6" y="549" width="13.6" height="15.0" fill="rgb(206,8,2)" rx="2" ry="2" />
+<text  x="62.59" y="559.5" ></text>
+</g>
+<g >
+<title>__config_next (6,801,753 samples, 0.70%)</title><rect x="1295.4" y="37" width="11.0" height="15.0" fill="rgb(215,46,11)" rx="2" ry="2" />
+<text  x="1298.35" y="47.5" ></text>
+</g>
+<g >
+<title>mongo::WiredTigerIndex::StandardBulkBuilder::addKey (8,719,606 samples, 0.89%)</title><rect x="18.2" y="517" width="14.1" height="15.0" fill="rgb(216,52,12)" rx="2" ry="2" />
+<text  x="21.19" y="527.5" ></text>
+</g>
+<g >
+<title>__wt_vsnprintf_len_incr (5,050,505 samples, 0.52%)</title><rect x="1565.5" y="517" width="8.2" height="15.0" fill="rgb(228,108,26)" rx="2" ry="2" />
+<text  x="1568.49" y="527.5" ></text>
+</g>
+<g >
+<title>mongo::WiredTigerRecordStore::deleteRecord (37,217,687 samples, 3.82%)</title><rect x="663.7" y="565" width="60.3" height="15.0" fill="rgb(216,51,12)" rx="2" ry="2" />
+<text  x="666.66" y="575.5" >mongo:..</text>
+</g>
+<g >
+<title>__memcmp_avx2_movbe (10,071,995 samples, 1.03%)</title><rect x="1573.7" y="597" width="16.3" height="15.0" fill="rgb(224,91,21)" rx="2" ry="2" />
+<text  x="1576.68" y="607.5" ></text>
+</g>
+<g >
+<title>mongo::TTLMonitor::doTTLForIndex (699,737,701 samples, 71.78%)</title><rect x="106.0" y="677" width="1134.1" height="15.0" fill="rgb(217,58,13)" rx="2" ry="2" />
+<text  x="108.98" y="687.5" >mongo::TTLMonitor::doTTLForIndex</text>
+</g>
+<g >
+<title>mongo::CollectionImpl::_insertDocuments (67,285,464 samples, 6.90%)</title><rect x="1306.4" y="357" width="109.0" height="15.0" fill="rgb(216,53,12)" rx="2" ry="2" />
+<text  x="1309.38" y="367.5" >mongo::Collec..</text>
+</g>
+<g >
+<title>void mongo::BasicBufBuilder&lt;mongo::SharedBufferAllocator&gt;::appendNumImpl&lt;char&gt; (23,307,639 samples, 2.39%)</title><rect x="1415.4" y="277" width="37.8" height="15.0" fill="rgb(225,94,22)" rx="2" ry="2" />
+<text  x="1418.43" y="287.5" >voi..</text>
+</g>
+<g >
+<title>[unknown] (8,206,486 samples, 0.84%)</title><rect x="1552.2" y="485" width="13.3" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="1555.19" y="495.5" ></text>
+</g>
+<g >
+<title>__curfile_search_near (21,308,490 samples, 2.19%)</title><rect x="782.1" y="485" width="34.6" height="15.0" fill="rgb(243,178,42)" rx="2" ry="2" />
+<text  x="785.12" y="495.5" >__..</text>
+</g>
+<g >
+<title>mongo::latch_detail::Mutex::_onUnlock (36,912,037 samples, 3.79%)</title><rect x="487.7" y="453" width="59.8" height="15.0" fill="rgb(225,95,22)" rx="2" ry="2" />
+<text  x="490.71" y="463.5" >mongo:..</text>
+</g>
+<g >
+<title>mongo::MultiIndexBlock::init (5,050,505 samples, 0.52%)</title><rect x="73.2" y="581" width="8.2" height="15.0" fill="rgb(228,106,25)" rx="2" ry="2" />
+<text  x="76.24" y="591.5" ></text>
+</g>
+<g >
+<title>__config_next (17,742,692 samples, 1.82%)</title><rect x="1504.5" y="149" width="28.7" height="15.0" fill="rgb(215,46,11)" rx="2" ry="2" />
+<text  x="1507.45" y="159.5" >__..</text>
+</g>
+<g >
+<title>mongo::ServiceStateMachine::_sourceMessage (151,811,394 samples, 15.57%)</title><rect x="1287.2" y="661" width="246.0" height="15.0" fill="rgb(214,44,10)" rx="2" ry="2" />
+<text  x="1290.17" y="671.5" >mongo::ServiceStateMachine::_sou..</text>
+</g>
+<g >
+<title>__wt_row_modify (7,449,776 samples, 0.76%)</title><rect x="235.6" y="421" width="12.0" height="15.0" fill="rgb(232,126,30)" rx="2" ry="2" />
+<text  x="238.55" y="431.5" ></text>
+</g>
+<g >
+<title>mongo::repl::StorageInterfaceImpl::upsertById (13,917,777 samples, 1.43%)</title><rect x="1256.4" y="613" width="22.6" height="15.0" fill="rgb(227,101,24)" rx="2" ry="2" />
+<text  x="1259.42" y="623.5" >m..</text>
+</g>
+<g >
+<title>mongo::TTLMonitor::doTTLPass (699,737,701 samples, 71.78%)</title><rect x="106.0" y="693" width="1134.1" height="15.0" fill="rgb(249,206,49)" rx="2" ry="2" />
+<text  x="108.98" y="703.5" >mongo::TTLMonitor::doTTLPass</text>
+</g>
+<g >
+<title>std::_Function_handler&lt;void  (151,811,394 samples, 15.57%)</title><rect x="1287.2" y="709" width="246.0" height="15.0" fill="rgb(245,187,44)" rx="2" ry="2" />
+<text  x="1290.17" y="719.5" >std::_Function_handler&lt;void </text>
+</g>
+<g >
+<title>execute_native_thread_routine (15,151,515 samples, 1.55%)</title><rect x="81.4" y="757" width="24.6" height="15.0" fill="rgb(233,129,30)" rx="2" ry="2" />
+<text  x="84.42" y="767.5" >e..</text>
+</g>
+<g >
+<title>__schema_create_collapse.isra.6 (5,050,505 samples, 0.52%)</title><rect x="73.2" y="373" width="8.2" height="15.0" fill="rgb(239,160,38)" rx="2" ry="2" />
+<text  x="76.24" y="383.5" ></text>
+</g>
+<g >
+<title>__posix_sync (5,050,505 samples, 0.52%)</title><rect x="1248.2" y="629" width="8.2" height="15.0" fill="rgb(210,27,6)" rx="2" ry="2" />
+<text  x="1251.24" y="639.5" ></text>
+</g>
+<g >
+<title>mongo::(anonymous namespace)::readFileAsString (8,206,486 samples, 0.84%)</title><rect x="1552.2" y="661" width="13.3" height="15.0" fill="rgb(244,182,43)" rx="2" ry="2" />
+<text  x="1555.19" y="671.5" ></text>
+</g>
+<g >
+<title>[unknown] (8,206,486 samples, 0.84%)</title><rect x="1552.2" y="469" width="13.3" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="1555.19" y="479.5" ></text>
+</g>
+<g >
+<title>mongo::ServiceStateMachine::_runNextInGuard (151,811,394 samples, 15.57%)</title><rect x="1287.2" y="677" width="246.0" height="15.0" fill="rgb(249,204,48)" rx="2" ry="2" />
+<text  x="1290.17" y="687.5" >mongo::ServiceStateMachine::_run..</text>
+</g>
+<g >
+<title>execute_native_thread_routine (24,018,787 samples, 2.46%)</title><rect x="1248.2" y="757" width="39.0" height="15.0" fill="rgb(233,129,30)" rx="2" ry="2" />
+<text  x="1251.24" y="767.5" >exe..</text>
+</g>
+<g >
+<title>mongo::WiredTigerIndex::WiredTigerIndex (6,801,753 samples, 0.70%)</title><rect x="1295.4" y="229" width="11.0" height="15.0" fill="rgb(238,153,36)" rx="2" ry="2" />
+<text  x="1298.35" y="239.5" ></text>
+</g>
+<g >
+<title>OplogVi.yThread (15,151,515 samples, 1.55%)</title><rect x="81.4" y="789" width="24.6" height="15.0" fill="rgb(211,27,6)" rx="2" ry="2" />
+<text  x="84.42" y="799.5" >O..</text>
+</g>
+<g >
+<title>mongo::FTDCBSONUtil::(anonymous namespace)::extractMetricsFromDocument (10,071,995 samples, 1.03%)</title><rect x="1573.7" y="613" width="16.3" height="15.0" fill="rgb(205,0,0)" rx="2" ry="2" />
+<text  x="1576.68" y="623.5" ></text>
+</g>
+<g >
+<title>mongo::WiredTigerIndexUnique::_insert (13,667,322 samples, 1.40%)</title><rect x="1321.1" y="245" width="22.2" height="15.0" fill="rgb(234,136,32)" rx="2" ry="2" />
+<text  x="1324.13" y="255.5" >m..</text>
+</g>
+<g >
+<title>mongo::PlanYieldPolicy::shouldYieldOrInterrupt (8,421,731 samples, 0.86%)</title><rect x="59.6" y="533" width="13.6" height="15.0" fill="rgb(205,4,1)" rx="2" ry="2" />
+<text  x="62.59" y="543.5" ></text>
+</g>
+<g >
+<title>mongo::repl::ReplicationConsistencyMarkersImpl::refreshOplogTruncateAfterPointIfPrimary (13,917,777 samples, 1.43%)</title><rect x="1256.4" y="661" width="22.6" height="15.0" fill="rgb(221,75,17)" rx="2" ry="2" />
+<text  x="1259.42" y="671.5" >m..</text>
+</g>
+<g >
+<title>mongo::StringData::compare (8,711,799 samples, 0.89%)</title><rect x="32.3" y="405" width="14.1" height="15.0" fill="rgb(232,128,30)" rx="2" ry="2" />
+<text  x="35.32" y="415.5" ></text>
+</g>
+<g >
+<title>__wt_config_get.part.0 (6,801,753 samples, 0.70%)</title><rect x="1295.4" y="69" width="11.0" height="15.0" fill="rgb(213,39,9)" rx="2" ry="2" />
+<text  x="1298.35" y="79.5" ></text>
+</g>
+<g >
+<title>mongo::IndexCatalogImpl::_unindexRecord (115,615,213 samples, 11.86%)</title><rect x="120.5" y="549" width="187.4" height="15.0" fill="rgb(218,63,15)" rx="2" ry="2" />
+<text  x="123.51" y="559.5" >mongo::IndexCatalogImpl:..</text>
+</g>
+<g >
+<title>mongo::PlanStage::work (699,737,701 samples, 71.78%)</title><rect x="106.0" y="613" width="1134.1" height="15.0" fill="rgb(205,3,0)" rx="2" ry="2" />
+<text  x="108.98" y="623.5" >mongo::PlanStage::work</text>
+</g>
+<g >
+<title>mongo::(anonymous namespace)::_getMetadata (6,801,753 samples, 0.70%)</title><rect x="1295.4" y="149" width="11.0" height="15.0" fill="rgb(220,70,16)" rx="2" ry="2" />
+<text  x="1298.35" y="159.5" ></text>
+</g>
+<g >
+<title>mongo::(anonymous namespace)::WriteCommand::InvocationBase::run (151,811,394 samples, 15.57%)</title><rect x="1287.2" y="437" width="246.0" height="15.0" fill="rgb(223,83,19)" rx="2" ry="2" />
+<text  x="1290.17" y="447.5" >mongo::(anonymous namespace)::Wr..</text>
+</g>
+<g >
+<title>int mongo::wiredTigerPrepareConflictRetry&lt;mongo::WiredTigerRecordStoreCursorBase::seekExact (36,868,449 samples, 3.78%)</title><rect x="1102.9" y="517" width="59.7" height="15.0" fill="rgb(211,28,6)" rx="2" ry="2" />
+<text  x="1105.87" y="527.5" >int mo..</text>
+</g>
+<g >
+<title>mongo::(anonymous namespace)::DiagnosticListener::onUnlock (37,228,631 samples, 3.82%)</title><rect x="366.2" y="469" width="60.3" height="15.0" fill="rgb(232,128,30)" rx="2" ry="2" />
+<text  x="369.16" y="479.5" >mongo:..</text>
+</g>
+<g >
+<title>__wt_row_search (5,050,505 samples, 0.52%)</title><rect x="1321.1" y="181" width="8.2" height="15.0" fill="rgb(248,201,48)" rx="2" ry="2" />
+<text  x="1324.13" y="191.5" ></text>
+</g>
+<g >
+<title>__config_next (53,155,685 samples, 5.45%)</title><rect x="836.5" y="389" width="86.1" height="15.0" fill="rgb(215,46,11)" rx="2" ry="2" />
+<text  x="839.49" y="399.5" >__config_n..</text>
+</g>
+<g >
+<title>clone3 (24,018,787 samples, 2.46%)</title><rect x="1248.2" y="773" width="39.0" height="15.0" fill="rgb(216,54,12)" rx="2" ry="2" />
+<text  x="1251.24" y="783.5" >clo..</text>
+</g>
+<g >
+<title>__wt_cursor_valid (34,930,984 samples, 3.58%)</title><rect x="178.9" y="421" width="56.7" height="15.0" fill="rgb(251,215,51)" rx="2" ry="2" />
+<text  x="181.94" y="431.5" >__wt_..</text>
+</g>
+<g >
+<title>mongo::IndexScan::initIndexScan (6,008,952 samples, 0.62%)</title><rect x="1033.9" y="517" width="9.7" height="15.0" fill="rgb(246,192,45)" rx="2" ry="2" />
+<text  x="1036.86" y="527.5" ></text>
+</g>
+<g >
+<title>[unknown] (8,206,486 samples, 0.84%)</title><rect x="1552.2" y="405" width="13.3" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="1555.19" y="415.5" ></text>
+</g>
+<g >
+<title>mongo::WiredTigerSessionCache::waitUntilDurable (24,018,787 samples, 2.46%)</title><rect x="1248.2" y="693" width="39.0" height="15.0" fill="rgb(247,195,46)" rx="2" ry="2" />
+<text  x="1251.24" y="703.5" >mon..</text>
+</g>
+<g >
+<title>std::_Function_handler&lt;void  (151,811,394 samples, 15.57%)</title><rect x="1287.2" y="725" width="246.0" height="15.0" fill="rgb(245,187,44)" rx="2" ry="2" />
+<text  x="1290.17" y="735.5" >std::_Function_handler&lt;void </text>
+</g>
+<g >
+<title>int mongo::wiredTigerPrepareConflictRetry&lt;mongo::(anonymous namespace)::WiredTigerIndexCursorBase::seekWTCursor (6,008,952 samples, 0.62%)</title><rect x="1033.9" y="469" width="9.7" height="15.0" fill="rgb(253,224,53)" rx="2" ry="2" />
+<text  x="1036.86" y="479.5" ></text>
+</g>
+<g >
+<title>[unknown] (5,050,505 samples, 0.52%)</title><rect x="1240.1" y="501" width="8.1" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="1243.05" y="511.5" ></text>
+</g>
+<g >
+<title>mongo::IndexBuildsManager::startBuildingIndex (33,968,918 samples, 3.48%)</title><rect x="18.2" y="581" width="55.0" height="15.0" fill="rgb(213,40,9)" rx="2" ry="2" />
+<text  x="21.19" y="591.5" >mongo..</text>
+</g>
+<g >
+<title>__curmetadata_setkv (5,050,505 samples, 0.52%)</title><rect x="73.2" y="389" width="8.2" height="15.0" fill="rgb(211,29,7)" rx="2" ry="2" />
+<text  x="76.24" y="399.5" ></text>
+</g>
+<g >
+<title>pthread_cond_timedwait@@GLIBC_2.3.2 (5,050,505 samples, 0.52%)</title><rect x="97.8" y="709" width="8.2" height="15.0" fill="rgb(223,83,19)" rx="2" ry="2" />
+<text  x="100.80" y="719.5" ></text>
+</g>
+<g >
+<title>__GI___pthread_disable_asynccancel (5,050,505 samples, 0.52%)</title><rect x="1248.2" y="613" width="8.2" height="15.0" fill="rgb(236,146,34)" rx="2" ry="2" />
+<text  x="1251.24" y="623.5" ></text>
+</g>
+<g >
+<title>mongo::WiredTigerRecordStore::insertRecords (49,366,033 samples, 5.06%)</title><rect x="1453.2" y="277" width="80.0" height="15.0" fill="rgb(253,224,53)" rx="2" ry="2" />
+<text  x="1456.20" y="287.5" >mongo::Wi..</text>
+</g>
+<g >
+<title>[unknown] (5,050,505 samples, 0.52%)</title><rect x="1240.1" y="549" width="8.1" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="1243.05" y="559.5" ></text>
+</g>
+<g >
+<title>mongo::PlanExecutorImpl::getNext (6,326,855 samples, 0.65%)</title><rect x="1268.7" y="565" width="10.3" height="15.0" fill="rgb(232,126,30)" rx="2" ry="2" />
+<text  x="1271.73" y="575.5" ></text>
+</g>
+<g >
+<title>conn11 (151,811,394 samples, 15.57%)</title><rect x="1287.2" y="789" width="246.0" height="15.0" fill="rgb(252,219,52)" rx="2" ry="2" />
+<text  x="1290.17" y="799.5" >conn11</text>
+</g>
+<g >
+<title>mongo::WiredTigerRecoveryUnit::_txnOpen (134,021,989 samples, 13.75%)</title><rect x="816.7" y="501" width="217.2" height="15.0" fill="rgb(245,187,44)" rx="2" ry="2" />
+<text  x="819.65" y="511.5" >mongo::WiredTigerRecoveryUni..</text>
+</g>
+<g >
+<title>mongo::RequiresIndexStage::doRestoreStateRequiresCollection (155,330,479 samples, 15.93%)</title><rect x="782.1" y="549" width="251.8" height="15.0" fill="rgb(209,19,4)" rx="2" ry="2" />
+<text  x="785.12" y="559.5" >mongo::RequiresIndexStage::doRest..</text>
+</g>
+<g >
+<title>__session_create (5,050,505 samples, 0.52%)</title><rect x="1287.2" y="277" width="8.2" height="15.0" fill="rgb(228,108,25)" rx="2" ry="2" />
+<text  x="1290.17" y="287.5" ></text>
+</g>
+<g >
+<title>mongo::FTDCBSONUtil::(anonymous namespace)::extractMetricsFromDocument (10,071,995 samples, 1.03%)</title><rect x="1573.7" y="629" width="16.3" height="15.0" fill="rgb(205,0,0)" rx="2" ry="2" />
+<text  x="1576.68" y="639.5" ></text>
+</g>
+<g >
+<title>mongo::WiredTigerSession::getCachedCursor (9,103,484 samples, 0.93%)</title><rect x="1306.4" y="229" width="14.7" height="15.0" fill="rgb(212,33,7)" rx="2" ry="2" />
+<text  x="1309.38" y="239.5" ></text>
+</g>
+<g >
+<title>mongo::WiredTigerKVEngine::WiredTigerJournalFlusher::run (24,018,787 samples, 2.46%)</title><rect x="1248.2" y="709" width="39.0" height="15.0" fill="rgb(213,38,9)" rx="2" ry="2" />
+<text  x="1251.24" y="719.5" >mon..</text>
+</g>
+<g >
+<title>std::_Rb_tree_rebalance_for_erase (5,050,505 samples, 0.52%)</title><rect x="1279.0" y="613" width="8.2" height="15.0" fill="rgb(205,2,0)" rx="2" ry="2" />
+<text  x="1281.98" y="623.5" ></text>
+</g>
+<g >
+<title>mongo::AbstractIndexAccessMethod::removeKeys (115,615,213 samples, 11.86%)</title><rect x="120.5" y="517" width="187.4" height="15.0" fill="rgb(240,162,38)" rx="2" ry="2" />
+<text  x="123.51" y="527.5" >mongo::AbstractIndexAcce..</text>
+</g>
+<g >
+<title>__strchrnul_avx2 (5,050,505 samples, 0.52%)</title><rect x="1565.5" y="485" width="8.2" height="15.0" fill="rgb(244,183,43)" rx="2" ry="2" />
+<text  x="1568.49" y="495.5" ></text>
+</g>
+<g >
+<title>mongo::(anonymous namespace)::_todb (35,873,607 samples, 3.68%)</title><rect x="724.0" y="549" width="58.1" height="15.0" fill="rgb(216,52,12)" rx="2" ry="2" />
+<text  x="726.98" y="559.5" >mongo:..</text>
+</g>
+<g >
+<title>mongo::WiredTigerUtil::setTableLogging (5,050,505 samples, 0.52%)</title><rect x="73.2" y="453" width="8.2" height="15.0" fill="rgb(235,142,33)" rx="2" ry="2" />
+<text  x="76.24" y="463.5" ></text>
+</g>
+<g >
+<title>mongo::DeleteStage::doWork (690,775,099 samples, 70.86%)</title><rect x="120.5" y="597" width="1119.6" height="15.0" fill="rgb(207,10,2)" rx="2" ry="2" />
+<text  x="123.51" y="607.5" >mongo::DeleteStage::doWork</text>
+</g>
+<g >
+<title>mongo::WiredTigerRecordStore::insertRecords (71,651,675 samples, 7.35%)</title><rect x="547.5" y="469" width="116.2" height="15.0" fill="rgb(253,224,53)" rx="2" ry="2" />
+<text  x="550.53" y="479.5" >mongo::WiredTi..</text>
+</g>
+<g >
+<title>mongo::LogicalClock::reserveTicks (36,912,037 samples, 3.79%)</title><rect x="487.7" y="485" width="59.8" height="15.0" fill="rgb(227,101,24)" rx="2" ry="2" />
+<text  x="490.71" y="495.5" >mongo:..</text>
+</g>
+<g >
+<title>IndexBu.ongod-1 (39,019,423 samples, 4.00%)</title><rect x="18.2" y="789" width="63.2" height="15.0" fill="rgb(215,46,11)" rx="2" ry="2" />
+<text  x="21.19" y="799.5" >IndexB..</text>
+</g>
+<g >
+<title>mongo::WiredTigerIndexStandard::_unindex (36,054,548 samples, 3.70%)</title><rect x="120.5" y="469" width="58.4" height="15.0" fill="rgb(224,88,21)" rx="2" ry="2" />
+<text  x="123.51" y="479.5" >mongo:..</text>
+</g>
+<g >
+<title>mongo::MultiIndexBlock::dumpInsertsFromBulk (8,719,606 samples, 0.89%)</title><rect x="18.2" y="549" width="14.1" height="15.0" fill="rgb(228,106,25)" rx="2" ry="2" />
+<text  x="21.19" y="559.5" ></text>
+</g>
+<g >
+<title>TTLMonitor (704,788,206 samples, 72.29%)</title><rect x="106.0" y="789" width="1142.2" height="15.0" fill="rgb(231,120,28)" rx="2" ry="2" />
+<text  x="108.98" y="799.5" >TTLMonitor</text>
+</g>
+<g >
+<title>mongo::(anonymous namespace)::runFunc (151,811,394 samples, 15.57%)</title><rect x="1287.2" y="741" width="246.0" height="15.0" fill="rgb(214,44,10)" rx="2" ry="2" />
+<text  x="1290.17" y="751.5" >mongo::(anonymous namespace)::ru..</text>
+</g>
+<g >
+<title>__schema_create_collapse.isra.6 (6,801,753 samples, 0.70%)</title><rect x="1295.4" y="101" width="11.0" height="15.0" fill="rgb(239,160,38)" rx="2" ry="2" />
+<text  x="1298.35" y="111.5" ></text>
+</g>
+<g >
+<title>mongo::FTDCSimpleInternalCommandCollector::collect (5,050,505 samples, 0.52%)</title><rect x="1565.5" y="693" width="8.2" height="15.0" fill="rgb(211,31,7)" rx="2" ry="2" />
+<text  x="1568.49" y="703.5" ></text>
+</g>
+<g >
+<title>execute_native_thread_routine (5,050,505 samples, 0.52%)</title><rect x="10.0" y="757" width="8.2" height="15.0" fill="rgb(233,129,30)" rx="2" ry="2" />
+<text  x="13.00" y="767.5" ></text>
+</g>
+<g >
+<title>__wt_session_gen_leave (30,693,218 samples, 3.15%)</title><rect x="1343.3" y="293" width="49.7" height="15.0" fill="rgb(220,69,16)" rx="2" ry="2" />
+<text  x="1346.28" y="303.5" >__wt_..</text>
+</g>
+<g >
+<title>__wt_btcur_remove (36,054,548 samples, 3.70%)</title><rect x="120.5" y="437" width="58.4" height="15.0" fill="rgb(251,215,51)" rx="2" ry="2" />
+<text  x="123.51" y="447.5" >__wt_b..</text>
+</g>
+<g >
+<title>[unknown] (5,050,505 samples, 0.52%)</title><rect x="97.8" y="661" width="8.2" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="100.80" y="671.5" ></text>
+</g>
+<g >
+<title>mongo::(anonymous namespace)::execCommandDatabase (151,811,394 samples, 15.57%)</title><rect x="1287.2" y="485" width="246.0" height="15.0" fill="rgb(217,59,14)" rx="2" ry="2" />
+<text  x="1290.17" y="495.5" >mongo::(anonymous namespace)::ex..</text>
+</g>
+<g >
+<title>mongo::unique_function&lt;void  (39,019,423 samples, 4.00%)</title><rect x="18.2" y="677" width="63.2" height="15.0" fill="rgb(235,139,33)" rx="2" ry="2" />
+<text  x="21.19" y="687.5" >mongo:..</text>
+</g>
+<g >
+<title>mongo::performInserts (151,811,394 samples, 15.57%)</title><rect x="1287.2" y="405" width="246.0" height="15.0" fill="rgb(214,45,10)" rx="2" ry="2" />
+<text  x="1290.17" y="415.5" >mongo::performInserts</text>
+</g>
+<g >
+<title>mongo::repl::logOp (108,563,712 samples, 11.14%)</title><rect x="487.7" y="517" width="176.0" height="15.0" fill="rgb(226,99,23)" rx="2" ry="2" />
+<text  x="490.71" y="527.5" >mongo::repl::logOp</text>
+</g>
+<g >
+<title>mongo::WiredTigerRecoveryUnit::getSession (134,021,989 samples, 13.75%)</title><rect x="816.7" y="517" width="217.2" height="15.0" fill="rgb(244,179,42)" rx="2" ry="2" />
+<text  x="819.65" y="527.5" >mongo::WiredTigerRecoveryUni..</text>
+</g>
+<g >
+<title>mongo::(anonymous namespace)::insertDocuments (139,959,136 samples, 14.36%)</title><rect x="1306.4" y="389" width="226.8" height="15.0" fill="rgb(244,182,43)" rx="2" ry="2" />
+<text  x="1309.38" y="399.5" >mongo::(anonymous namespace)::..</text>
+</g>
+<g >
+<title>__wt_btcur_search_near (21,308,490 samples, 2.19%)</title><rect x="782.1" y="469" width="34.6" height="15.0" fill="rgb(217,55,13)" rx="2" ry="2" />
+<text  x="785.12" y="479.5" >__..</text>
+</g>
+<g >
+<title>[unknown] (5,050,505 samples, 0.52%)</title><rect x="89.6" y="661" width="8.2" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="92.61" y="671.5" ></text>
+</g>
+<g >
+<title>mongo::IndexCatalogImpl::_unindexKeys (115,615,213 samples, 11.86%)</title><rect x="120.5" y="533" width="187.4" height="15.0" fill="rgb(228,108,25)" rx="2" ry="2" />
+<text  x="123.51" y="543.5" >mongo::IndexCatalogImpl:..</text>
+</g>
+<g >
+<title>[unknown] (8,206,486 samples, 0.84%)</title><rect x="1552.2" y="549" width="13.3" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="1555.19" y="559.5" ></text>
+</g>
+<g >
+<title>mongo::KeyString::TypeBits::resetFromBuffer (8,616,817 samples, 0.88%)</title><rect x="1329.3" y="197" width="14.0" height="15.0" fill="rgb(227,102,24)" rx="2" ry="2" />
+<text  x="1332.31" y="207.5" ></text>
+</g>
+<g >
+<title>__wt_btcur_insert (23,340,248 samples, 2.39%)</title><rect x="1466.6" y="229" width="37.9" height="15.0" fill="rgb(206,7,1)" rx="2" ry="2" />
+<text  x="1469.63" y="239.5" >__w..</text>
+</g>
+<g >
+<title>__curmetadata_search (5,050,505 samples, 0.52%)</title><rect x="73.2" y="405" width="8.2" height="15.0" fill="rgb(239,160,38)" rx="2" ry="2" />
+<text  x="76.24" y="415.5" ></text>
+</g>
+<g >
+<title>mongo::repl::OplogEntryBase::toBSON (23,307,639 samples, 2.39%)</title><rect x="1415.4" y="309" width="37.8" height="15.0" fill="rgb(212,33,7)" rx="2" ry="2" />
+<text  x="1418.43" y="319.5" >mon..</text>
+</g>
+<g >
+<title>[unknown] (7,838,572 samples, 0.80%)</title><rect x="651.0" y="277" width="12.7" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="653.95" y="287.5" ></text>
+</g>
+<g >
+<title>[unknown] (8,206,486 samples, 0.84%)</title><rect x="1552.2" y="501" width="13.3" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="1555.19" y="511.5" ></text>
+</g>
+<g >
+<title>__wt_log_force_sync (5,050,505 samples, 0.52%)</title><rect x="1248.2" y="645" width="8.2" height="15.0" fill="rgb(217,59,14)" rx="2" ry="2" />
+<text  x="1251.24" y="655.5" ></text>
+</g>
+<g >
+<title>[unknown] (7,838,572 samples, 0.80%)</title><rect x="651.0" y="293" width="12.7" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="653.95" y="303.5" ></text>
+</g>
+<g >
+<title>__wt_schema_create (5,050,505 samples, 0.52%)</title><rect x="1287.2" y="245" width="8.2" height="15.0" fill="rgb(246,190,45)" rx="2" ry="2" />
+<text  x="1290.17" y="255.5" ></text>
+</g>
+<g >
+<title>__wt_buf_fmt (5,050,505 samples, 0.52%)</title><rect x="1565.5" y="533" width="8.2" height="15.0" fill="rgb(230,117,28)" rx="2" ry="2" />
+<text  x="1568.49" y="543.5" ></text>
+</g>
+<g >
+<title>mongo::WiredTigerIndexUnique::_insertTimestampUnsafe (13,667,322 samples, 1.40%)</title><rect x="1321.1" y="229" width="22.2" height="15.0" fill="rgb(220,69,16)" rx="2" ry="2" />
+<text  x="1324.13" y="239.5" >m..</text>
+</g>
+<g >
+<title>mongo::OpObserverImpl::onDelete (108,563,712 samples, 11.14%)</title><rect x="487.7" y="549" width="176.0" height="15.0" fill="rgb(222,79,19)" rx="2" ry="2" />
+<text  x="490.71" y="559.5" >mongo::OpObserverImpl:..</text>
+</g>
+<g >
+<title>mongo::WiredTigerRecoveryUnit::setTimestamp (8,770,935 samples, 0.90%)</title><rect x="1401.2" y="325" width="14.2" height="15.0" fill="rgb(222,82,19)" rx="2" ry="2" />
+<text  x="1404.21" y="335.5" ></text>
+</g>
+<g >
+<title>mongo::repl::ReplicationCoordinatorImpl::setMyLastAppliedOpTimeAndWallTimeForward (11,443,323 samples, 1.17%)</title><rect x="1221.5" y="501" width="18.6" height="15.0" fill="rgb(216,51,12)" rx="2" ry="2" />
+<text  x="1224.51" y="511.5" ></text>
+</g>
+<g >
+<title>__GI___lll_lock_wake (10,101,010 samples, 1.04%)</title><rect x="81.4" y="709" width="16.4" height="15.0" fill="rgb(210,23,5)" rx="2" ry="2" />
+<text  x="84.42" y="719.5" ></text>
+</g>
+<g >
+<title>[unknown] (8,206,486 samples, 0.84%)</title><rect x="1552.2" y="453" width="13.3" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="1555.19" y="463.5" ></text>
+</g>
+<g >
+<title>mongo::repl::_logOpsInner (49,366,033 samples, 5.06%)</title><rect x="1453.2" y="309" width="80.0" height="15.0" fill="rgb(238,154,36)" rx="2" ry="2" />
+<text  x="1456.20" y="319.5" >mongo::re..</text>
+</g>
+<g >
+<title>[unknown] (8,206,486 samples, 0.84%)</title><rect x="1552.2" y="437" width="13.3" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="1555.19" y="447.5" ></text>
+</g>
+<g >
+<title>__GI___futex_abstimed_wait_cancelable64 (5,050,505 samples, 0.52%)</title><rect x="10.0" y="693" width="8.2" height="15.0" fill="rgb(215,48,11)" rx="2" ry="2" />
+<text  x="13.00" y="703.5" ></text>
+</g>
+<g >
+<title>execute_native_thread_routine (704,788,206 samples, 72.29%)</title><rect x="106.0" y="757" width="1142.2" height="15.0" fill="rgb(233,129,30)" rx="2" ry="2" />
+<text  x="108.98" y="767.5" >execute_native_thread_routine</text>
+</g>
+<g >
+<title>[unknown] (5,050,505 samples, 0.52%)</title><rect x="97.8" y="629" width="8.2" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="100.80" y="639.5" ></text>
+</g>
+<g >
+<title>__wt_txn_set_timestamp (5,050,505 samples, 0.52%)</title><rect x="1393.0" y="277" width="8.2" height="15.0" fill="rgb(216,53,12)" rx="2" ry="2" />
+<text  x="1396.03" y="287.5" ></text>
+</g>
+<g >
+<title>mongo::latch_detail::Mutex::unlock (36,912,037 samples, 3.79%)</title><rect x="487.7" y="469" width="59.8" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="490.71" y="479.5" >mongo:..</text>
+</g>
+<g >
+<title>mongo::CommandHelpers::runCommandDirectly (5,050,505 samples, 0.52%)</title><rect x="1565.5" y="677" width="8.2" height="15.0" fill="rgb(220,69,16)" rx="2" ry="2" />
+<text  x="1568.49" y="687.5" ></text>
+</g>
+<g >
+<title>__wt_txn_modify (7,449,776 samples, 0.76%)</title><rect x="235.6" y="405" width="12.0" height="15.0" fill="rgb(219,67,16)" rx="2" ry="2" />
+<text  x="238.55" y="415.5" ></text>
+</g>
+<g >
+<title>mongo::repl::logInsertOps (72,673,672 samples, 7.45%)</title><rect x="1415.4" y="325" width="117.8" height="15.0" fill="rgb(220,71,17)" rx="2" ry="2" />
+<text  x="1418.43" y="335.5" >mongo::repl::l..</text>
+</g>
+<g >
+<title>mongo::WiredTigerRecoveryUnit::_commit (11,443,323 samples, 1.17%)</title><rect x="1221.5" y="549" width="18.6" height="15.0" fill="rgb(235,139,33)" rx="2" ry="2" />
+<text  x="1224.51" y="559.5" ></text>
+</g>
+<g >
+<title>mongo::WiredTigerUtil::setTableLogging (5,050,505 samples, 0.52%)</title><rect x="73.2" y="469" width="8.2" height="15.0" fill="rgb(235,142,33)" rx="2" ry="2" />
+<text  x="76.24" y="479.5" ></text>
+</g>
+<g >
+<title>mongo::repl::ReplicationCoordinatorExternalStateImpl::getToken (13,917,777 samples, 1.43%)</title><rect x="1256.4" y="677" width="22.6" height="15.0" fill="rgb(234,136,32)" rx="2" ry="2" />
+<text  x="1259.42" y="687.5" >m..</text>
+</g>
+<g >
+<title>__curstat_next (5,050,505 samples, 0.52%)</title><rect x="1565.5" y="549" width="8.2" height="15.0" fill="rgb(234,137,32)" rx="2" ry="2" />
+<text  x="1568.49" y="559.5" ></text>
+</g>
+<g >
+<title>mongo::WiredTigerRecordStore::appendCustomStats (5,050,505 samples, 0.52%)</title><rect x="1565.5" y="597" width="8.2" height="15.0" fill="rgb(248,201,48)" rx="2" ry="2" />
+<text  x="1568.49" y="607.5" ></text>
+</g>
+<g >
+<title>[unknown] (5,050,505 samples, 0.52%)</title><rect x="89.6" y="677" width="8.2" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="92.61" y="687.5" ></text>
+</g>
+<g >
+<title>mongo::ServiceEntryPointCommon::handleRequest (151,811,394 samples, 15.57%)</title><rect x="1287.2" y="517" width="246.0" height="15.0" fill="rgb(243,178,42)" rx="2" ry="2" />
+<text  x="1290.17" y="527.5" >mongo::ServiceEntryPointCommon::..</text>
+</g>
+<g >
+<title>[unknown] (5,050,505 samples, 0.52%)</title><rect x="97.8" y="645" width="8.2" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="100.80" y="655.5" ></text>
+</g>
+<g >
+<title>__wt_row_modify (27,063,760 samples, 2.78%)</title><rect x="607.1" y="405" width="43.9" height="15.0" fill="rgb(232,126,30)" rx="2" ry="2" />
+<text  x="610.09" y="415.5" >__wt..</text>
+</g>
+<g >
+<title>mongo::BackgroundJob::jobBody (704,788,206 samples, 72.29%)</title><rect x="106.0" y="725" width="1142.2" height="15.0" fill="rgb(251,214,51)" rx="2" ry="2" />
+<text  x="108.98" y="735.5" >mongo::BackgroundJob::jobBody</text>
+</g>
+<g >
+<title>[unknown] (5,050,505 samples, 0.52%)</title><rect x="97.8" y="677" width="8.2" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="100.80" y="687.5" ></text>
+</g>
+<g >
+<title>mongo::PlanExecutorImpl::executePlan (699,737,701 samples, 71.78%)</title><rect x="106.0" y="661" width="1134.1" height="15.0" fill="rgb(251,215,51)" rx="2" ry="2" />
+<text  x="108.98" y="671.5" >mongo::PlanExecutorImpl::executePlan</text>
+</g>
+<g >
+<title>__wt_txn_modify (36,054,548 samples, 3.70%)</title><rect x="120.5" y="405" width="58.4" height="15.0" fill="rgb(219,67,16)" rx="2" ry="2" />
+<text  x="123.51" y="415.5" >__wt_t..</text>
+</g>
+<g >
+<title>mongo::(anonymous namespace)::runCommandImpl (151,811,394 samples, 15.57%)</title><rect x="1287.2" y="469" width="246.0" height="15.0" fill="rgb(234,136,32)" rx="2" ry="2" />
+<text  x="1290.17" y="479.5" >mongo::(anonymous namespace)::ru..</text>
+</g>
+<g >
+<title>mongo::procparser::parseProcNetstatFile (8,206,486 samples, 0.84%)</title><rect x="1552.2" y="677" width="13.3" height="15.0" fill="rgb(219,67,16)" rx="2" ry="2" />
+<text  x="1555.19" y="687.5" ></text>
+</g>
+<g >
+<title>mongo::procparser::parseProcMemInfoFile (11,711,994 samples, 1.20%)</title><rect x="1533.2" y="677" width="19.0" height="15.0" fill="rgb(231,121,29)" rx="2" ry="2" />
+<text  x="1536.21" y="687.5" ></text>
+</g>
+<g >
+<title>mongo::IndexCatalogImpl::createIndexEntry (5,050,505 samples, 0.52%)</title><rect x="73.2" y="549" width="8.2" height="15.0" fill="rgb(246,189,45)" rx="2" ry="2" />
+<text  x="76.24" y="559.5" ></text>
+</g>
+<g >
+<title>__config_getraw.constprop.1 (5,050,505 samples, 0.52%)</title><rect x="1287.2" y="165" width="8.2" height="15.0" fill="rgb(233,129,30)" rx="2" ry="2" />
+<text  x="1290.17" y="175.5" ></text>
+</g>
+<g >
+<title>mongo::IndexCatalogImpl::unindexRecord (115,615,213 samples, 11.86%)</title><rect x="120.5" y="565" width="187.4" height="15.0" fill="rgb(232,126,30)" rx="2" ry="2" />
+<text  x="123.51" y="575.5" >mongo::IndexCatalogImpl:..</text>
+</g>
+<g >
+<title>__wt_row_search (37,179,905 samples, 3.81%)</title><rect x="247.6" y="421" width="60.3" height="15.0" fill="rgb(248,201,48)" rx="2" ry="2" />
+<text  x="250.63" y="431.5" >__wt_r..</text>
+</g>
+<g >
+<title>[unknown] (5,050,505 samples, 0.52%)</title><rect x="1240.1" y="517" width="8.1" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="1243.05" y="527.5" ></text>
+</g>
+<g >
+<title>mongo::SetNode::init (7,590,922 samples, 0.78%)</title><rect x="1256.4" y="533" width="12.3" height="15.0" fill="rgb(226,100,24)" rx="2" ry="2" />
+<text  x="1259.42" y="543.5" ></text>
+</g>
+<g >
+<title>mongo::repl::ReplicationCoordinatorImpl::_updateLastCommittedOpTimeAndWallTime (5,050,505 samples, 0.52%)</title><rect x="1279.0" y="645" width="8.2" height="15.0" fill="rgb(213,40,9)" rx="2" ry="2" />
+<text  x="1281.98" y="655.5" ></text>
+</g>
+<g >
+<title>mongo::FTDCBSONUtil::extractMetricsFromDocument (10,071,995 samples, 1.03%)</title><rect x="1573.7" y="661" width="16.3" height="15.0" fill="rgb(229,112,26)" rx="2" ry="2" />
+<text  x="1576.68" y="671.5" ></text>
+</g>
+<g >
+<title>__wt_config_getones (17,742,692 samples, 1.82%)</title><rect x="1504.5" y="181" width="28.7" height="15.0" fill="rgb(230,118,28)" rx="2" ry="2" />
+<text  x="1507.45" y="191.5" >__..</text>
+</g>
+<g >
+<title>__config_next (5,050,505 samples, 0.52%)</title><rect x="1393.0" y="213" width="8.2" height="15.0" fill="rgb(215,46,11)" rx="2" ry="2" />
+<text  x="1396.03" y="223.5" ></text>
+</g>
+<g >
+<title>[unknown] (7,838,572 samples, 0.80%)</title><rect x="651.0" y="261" width="12.7" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="653.95" y="271.5" ></text>
+</g>
+<g >
+<title>mongo::IndexCatalogImpl::indexRecords (22,770,806 samples, 2.34%)</title><rect x="1306.4" y="341" width="36.9" height="15.0" fill="rgb(206,4,1)" rx="2" ry="2" />
+<text  x="1309.38" y="351.5" >mon..</text>
+</g>
+<g >
+<title>mongo::OpObserverRegistry::onInserts (72,673,672 samples, 7.45%)</title><rect x="1415.4" y="357" width="117.8" height="15.0" fill="rgb(220,71,17)" rx="2" ry="2" />
+<text  x="1418.43" y="367.5" >mongo::OpObser..</text>
+</g>
+<g >
+<title>mongo::AbstractIndexAccessMethod::commitBulk (8,719,606 samples, 0.89%)</title><rect x="18.2" y="533" width="14.1" height="15.0" fill="rgb(213,37,8)" rx="2" ry="2" />
+<text  x="21.19" y="543.5" ></text>
+</g>
+<g >
+<title>mongo::IndexBuildsCoordinator::_runIndexBuild (33,968,918 samples, 3.48%)</title><rect x="18.2" y="645" width="55.0" height="15.0" fill="rgb(253,224,53)" rx="2" ry="2" />
+<text  x="21.19" y="655.5" >mongo..</text>
+</g>
+<g >
+<title>mongo::RecoveryUnit::commitRegisteredChanges (11,443,323 samples, 1.17%)</title><rect x="1221.5" y="533" width="18.6" height="15.0" fill="rgb(241,167,40)" rx="2" ry="2" />
+<text  x="1224.51" y="543.5" ></text>
+</g>
+<g >
+<title>[unknown] (8,206,486 samples, 0.84%)</title><rect x="1552.2" y="421" width="13.3" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="1555.19" y="431.5" ></text>
+</g>
+<g >
+<title>mongo::IndexBuildBlock::init (5,050,505 samples, 0.52%)</title><rect x="73.2" y="565" width="8.2" height="15.0" fill="rgb(252,218,52)" rx="2" ry="2" />
+<text  x="76.24" y="575.5" ></text>
+</g>
+<g >
+<title>auto mongo::IndexBuildsCoordinatorMongod::startIndexBuild (39,019,423 samples, 4.00%)</title><rect x="18.2" y="661" width="63.2" height="15.0" fill="rgb(206,8,1)" rx="2" ry="2" />
+<text  x="21.19" y="671.5" >auto m..</text>
+</g>
+<g >
+<title>mongo::ServiceStateMachine::_sourceCallback (151,811,394 samples, 15.57%)</title><rect x="1287.2" y="629" width="246.0" height="15.0" fill="rgb(249,204,48)" rx="2" ry="2" />
+<text  x="1290.17" y="639.5" >mongo::ServiceStateMachine::_sou..</text>
+</g>
+<g >
+<title>__wt_schema_create (5,050,505 samples, 0.52%)</title><rect x="1287.2" y="213" width="8.2" height="15.0" fill="rgb(246,190,45)" rx="2" ry="2" />
+<text  x="1290.17" y="223.5" ></text>
+</g>
+<g >
+<title>mongo::repl::LocalOplogInfo::getNextOpTimes (36,912,037 samples, 3.79%)</title><rect x="487.7" y="501" width="59.8" height="15.0" fill="rgb(245,184,44)" rx="2" ry="2" />
+<text  x="490.71" y="511.5" >mongo:..</text>
+</g>
+<g >
+<title>mongo::BSONObjIterator::next (7,838,572 samples, 0.80%)</title><rect x="651.0" y="405" width="12.7" height="15.0" fill="rgb(219,64,15)" rx="2" ry="2" />
+<text  x="653.95" y="415.5" ></text>
+</g>
+<g >
+<title>mongo::FTDCFileWriter::writeSample (10,071,995 samples, 1.03%)</title><rect x="1573.7" y="693" width="16.3" height="15.0" fill="rgb(212,34,8)" rx="2" ry="2" />
+<text  x="1576.68" y="703.5" ></text>
+</g>
+<g >
+<title>mongo::(anonymous namespace)::CollectionStats::errmsgRun (5,050,505 samples, 0.52%)</title><rect x="1565.5" y="629" width="8.2" height="15.0" fill="rgb(245,187,44)" rx="2" ry="2" />
+<text  x="1568.49" y="639.5" ></text>
+</g>
+<g >
+<title>mongo::WiredTigerIndex::WiredTigerIndex (5,050,505 samples, 0.52%)</title><rect x="73.2" y="501" width="8.2" height="15.0" fill="rgb(238,153,36)" rx="2" ry="2" />
+<text  x="76.24" y="511.5" ></text>
+</g>
+<g >
+<title>__wt_btcur_insert (5,050,505 samples, 0.52%)</title><rect x="1321.1" y="197" width="8.2" height="15.0" fill="rgb(206,7,1)" rx="2" ry="2" />
+<text  x="1324.13" y="207.5" ></text>
+</g>
+<g >
+<title>__wt_txn_config (86,037,902 samples, 8.83%)</title><rect x="836.5" y="453" width="139.4" height="15.0" fill="rgb(235,141,33)" rx="2" ry="2" />
+<text  x="839.49" y="463.5" >__wt_txn_config</text>
+</g>
+<g >
+<title>clone3 (5,050,505 samples, 0.52%)</title><rect x="10.0" y="773" width="8.2" height="15.0" fill="rgb(216,54,12)" rx="2" ry="2" />
+<text  x="13.00" y="783.5" ></text>
+</g>
+<g >
+<title>mongo::WiredTigerKVEngine::getGroupedSortedDataInterface (6,801,753 samples, 0.70%)</title><rect x="1295.4" y="261" width="11.0" height="15.0" fill="rgb(213,37,8)" rx="2" ry="2" />
+<text  x="1298.35" y="271.5" ></text>
+</g>
+<g >
+<title>[unknown] (5,050,505 samples, 0.52%)</title><rect x="1240.1" y="533" width="8.1" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="1243.05" y="543.5" ></text>
+</g>
+<g >
+<title>__wt_search_insert (37,179,905 samples, 3.81%)</title><rect x="247.6" y="405" width="60.3" height="15.0" fill="rgb(251,211,50)" rx="2" ry="2" />
+<text  x="250.63" y="415.5" >__wt_s..</text>
+</g>
+<g >
+<title>mongo::oploghack::extractKey (7,838,572 samples, 0.80%)</title><rect x="651.0" y="437" width="12.7" height="15.0" fill="rgb(253,222,53)" rx="2" ry="2" />
+<text  x="653.95" y="447.5" ></text>
+</g>
+<g >
+<title>__curfile_remove (36,054,548 samples, 3.70%)</title><rect x="120.5" y="453" width="58.4" height="15.0" fill="rgb(228,108,25)" rx="2" ry="2" />
+<text  x="123.51" y="463.5" >__curf..</text>
+</g>
+<g >
+<title>__GI___futex_abstimed_wait_cancelable64 (5,050,505 samples, 0.52%)</title><rect x="97.8" y="693" width="8.2" height="15.0" fill="rgb(215,48,11)" rx="2" ry="2" />
+<text  x="100.80" y="703.5" ></text>
+</g>
+<g >
+<title>mongo::FetchStage::doWork (79,448,048 samples, 8.15%)</title><rect x="1033.9" y="565" width="128.7" height="15.0" fill="rgb(235,141,33)" rx="2" ry="2" />
+<text  x="1036.86" y="575.5" >mongo::FetchStag..</text>
+</g>
+<g >
+<title>mongo::WiredTigerRecordStore::_insertRecords (71,651,675 samples, 7.35%)</title><rect x="547.5" y="453" width="116.2" height="15.0" fill="rgb(240,161,38)" rx="2" ry="2" />
+<text  x="550.53" y="463.5" >mongo::WiredTi..</text>
+</g>
+<g >
+<title>__wt_row_leaf_key_work (21,308,490 samples, 2.19%)</title><rect x="782.1" y="453" width="34.6" height="15.0" fill="rgb(216,54,12)" rx="2" ry="2" />
+<text  x="785.12" y="463.5" >__..</text>
+</g>
+<g >
+<title>mongo::(anonymous namespace)::_getMetadata (5,050,505 samples, 0.52%)</title><rect x="73.2" y="421" width="8.2" height="15.0" fill="rgb(220,70,16)" rx="2" ry="2" />
+<text  x="76.24" y="431.5" ></text>
+</g>
+<g >
+<title>[unknown] (5,050,505 samples, 0.52%)</title><rect x="1240.1" y="645" width="8.1" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="1243.05" y="655.5" ></text>
+</g>
+<g >
+<title>mongo::WiredTigerRecordStore::_insertRecords (35,743,723 samples, 3.67%)</title><rect x="1343.3" y="325" width="57.9" height="15.0" fill="rgb(240,161,38)" rx="2" ry="2" />
+<text  x="1346.28" y="335.5" >mongo:..</text>
+</g>
+<g >
+<title>mongo::ClockSource::waitForConditionUntil (5,050,505 samples, 0.52%)</title><rect x="10.0" y="725" width="8.2" height="15.0" fill="rgb(231,121,29)" rx="2" ry="2" />
+<text  x="13.00" y="735.5" ></text>
+</g>
+<g >
+<title>mongo::(anonymous namespace)::WiredTigerIndexCursorBase::seek (6,008,952 samples, 0.62%)</title><rect x="1033.9" y="501" width="9.7" height="15.0" fill="rgb(211,29,7)" rx="2" ry="2" />
+<text  x="1036.86" y="511.5" ></text>
+</g>
+<g >
+<title>std::thread::_State_impl&lt;std::thread::_Invoker&lt;std::tuple&lt;mongo::stdx::thread::thread&lt;mongo::BackgroundThreadClockSource::_startTimerThread (5,050,505 samples, 0.52%)</title><rect x="10.0" y="741" width="8.2" height="15.0" fill="rgb(239,156,37)" rx="2" ry="2" />
+<text  x="13.00" y="751.5" ></text>
+</g>
+<g >
+<title>mongo::PlanExecutorImpl::executePlan (6,326,855 samples, 0.65%)</title><rect x="1268.7" y="581" width="10.3" height="15.0" fill="rgb(251,215,51)" rx="2" ry="2" />
+<text  x="1271.73" y="591.5" ></text>
+</g>
+<g >
+<title>__curmetadata_search (6,801,753 samples, 0.70%)</title><rect x="1295.4" y="133" width="11.0" height="15.0" fill="rgb(239,160,38)" rx="2" ry="2" />
+<text  x="1298.35" y="143.5" ></text>
+</g>
+<g >
+<title>[unknown] (5,050,505 samples, 0.52%)</title><rect x="1240.1" y="629" width="8.1" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="1243.05" y="639.5" ></text>
+</g>
+<g >
+<title>mongo::ParsedUpdate::parseUpdate (7,590,922 samples, 0.78%)</title><rect x="1256.4" y="565" width="12.3" height="15.0" fill="rgb(253,223,53)" rx="2" ry="2" />
+<text  x="1259.42" y="575.5" ></text>
+</g>
+<g >
+<title>mongo::PlanStage::restoreState (191,204,086 samples, 19.61%)</title><rect x="724.0" y="581" width="309.9" height="15.0" fill="rgb(218,60,14)" rx="2" ry="2" />
+<text  x="726.98" y="591.5" >mongo::PlanStage::restoreState</text>
+</g>
+<g >
+<title>mongo::WiredTigerRecordStore::_insertRecords (49,366,033 samples, 5.06%)</title><rect x="1453.2" y="261" width="80.0" height="15.0" fill="rgb(240,161,38)" rx="2" ry="2" />
+<text  x="1456.20" y="271.5" >mongo::Wi..</text>
+</g>
+<g >
+<title>mongo::IndexScan::doWork (6,008,952 samples, 0.62%)</title><rect x="1033.9" y="533" width="9.7" height="15.0" fill="rgb(212,33,7)" rx="2" ry="2" />
+<text  x="1036.86" y="543.5" ></text>
+</g>
+<g >
+<title>mongo::ThreadPool::_workerThreadBody (39,019,423 samples, 4.00%)</title><rect x="18.2" y="725" width="63.2" height="15.0" fill="rgb(213,37,9)" rx="2" ry="2" />
+<text  x="21.19" y="735.5" >mongo:..</text>
+</g>
+<g >
+<title>Backgro.kSource (5,050,505 samples, 0.52%)</title><rect x="10.0" y="789" width="8.2" height="15.0" fill="rgb(235,138,33)" rx="2" ry="2" />
+<text  x="13.00" y="799.5" ></text>
+</g>
+<g >
+<title>__wt_config_getones (5,050,505 samples, 0.52%)</title><rect x="1393.0" y="245" width="8.2" height="15.0" fill="rgb(230,118,28)" rx="2" ry="2" />
+<text  x="1396.03" y="255.5" ></text>
+</g>
+<g >
+<title>mongo::WiredTigerUtil::exportTableToBSON (5,050,505 samples, 0.52%)</title><rect x="1565.5" y="581" width="8.2" height="15.0" fill="rgb(233,129,30)" rx="2" ry="2" />
+<text  x="1568.49" y="591.5" ></text>
+</g>
+<g >
+<title>mongo::PlanStage::work (115,777,961 samples, 11.88%)</title><rect x="1033.9" y="581" width="187.6" height="15.0" fill="rgb(205,3,0)" rx="2" ry="2" />
+<text  x="1036.86" y="591.5" >mongo::PlanStage::work</text>
+</g>
+<g >
+<title>mongo::WiredTigerIndexUnique::_unindexTimestampUnsafe (79,560,665 samples, 8.16%)</title><rect x="178.9" y="469" width="129.0" height="15.0" fill="rgb(211,28,6)" rx="2" ry="2" />
+<text  x="181.94" y="479.5" >mongo::WiredTige..</text>
+</g>
+<g >
+<title>clone3 (39,019,423 samples, 4.00%)</title><rect x="18.2" y="773" width="63.2" height="15.0" fill="rgb(216,54,12)" rx="2" ry="2" />
+<text  x="21.19" y="783.5" >clone3</text>
+</g>
+<g >
+<title>__wt_session_create (5,050,505 samples, 0.52%)</title><rect x="1287.2" y="261" width="8.2" height="15.0" fill="rgb(246,192,46)" rx="2" ry="2" />
+<text  x="1290.17" y="271.5" ></text>
+</g>
+<g >
+<title>mongo::IndexBuildBlock::init (6,801,753 samples, 0.70%)</title><rect x="1295.4" y="293" width="11.0" height="15.0" fill="rgb(252,218,52)" rx="2" ry="2" />
+<text  x="1298.35" y="303.5" ></text>
+</g>
+<g >
+<title>__wt_cursor_get_value (36,570,647 samples, 3.75%)</title><rect x="1043.6" y="517" width="59.3" height="15.0" fill="rgb(236,146,35)" rx="2" ry="2" />
+<text  x="1046.60" y="527.5" >__wt_c..</text>
+</g>
+<g >
+<title>__curbulk_insert_row (8,719,606 samples, 0.89%)</title><rect x="18.2" y="501" width="14.1" height="15.0" fill="rgb(207,9,2)" rx="2" ry="2" />
+<text  x="21.19" y="511.5" ></text>
+</g>
+<g >
+<title>[unknown] (5,050,505 samples, 0.52%)</title><rect x="10.0" y="677" width="8.2" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="13.00" y="687.5" ></text>
+</g>
+<g >
+<title>std::_Function_handler&lt;void  (151,811,394 samples, 15.57%)</title><rect x="1287.2" y="693" width="246.0" height="15.0" fill="rgb(245,187,44)" rx="2" ry="2" />
+<text  x="1290.17" y="703.5" >std::_Function_handler&lt;void </text>
+</g>
+<g >
+<title>__curfile_remove (37,217,687 samples, 3.82%)</title><rect x="663.7" y="549" width="60.3" height="15.0" fill="rgb(228,108,25)" rx="2" ry="2" />
+<text  x="666.66" y="559.5" >__curf..</text>
+</g>
+<g >
+<title>mongo::WiredTigerRecordStoreCursorBase::seekExact (73,439,096 samples, 7.53%)</title><rect x="1043.6" y="533" width="119.0" height="15.0" fill="rgb(242,173,41)" rx="2" ry="2" />
+<text  x="1046.60" y="543.5" >mongo::WiredTi..</text>
+</g>
+<g >
+<title>mongo::IndexBuildsManager::setUpIndexBuild (5,050,505 samples, 0.52%)</title><rect x="73.2" y="597" width="8.2" height="15.0" fill="rgb(205,1,0)" rx="2" ry="2" />
+<text  x="76.24" y="607.5" ></text>
+</g>
+<g >
+<title>auto mongo::future_details::call&lt;mongo::ServiceStateMachine::_sourceMessage (151,811,394 samples, 15.57%)</title><rect x="1287.2" y="645" width="246.0" height="15.0" fill="rgb(231,121,29)" rx="2" ry="2" />
+<text  x="1290.17" y="655.5" >auto mongo::future_details::call..</text>
+</g>
+<g >
+<title>mongo::WiredTigerRecoveryUnit::setTimestamp (5,050,505 samples, 0.52%)</title><rect x="1393.0" y="309" width="8.2" height="15.0" fill="rgb(222,82,19)" rx="2" ry="2" />
+<text  x="1396.03" y="319.5" ></text>
+</g>
+<g >
+<title>mongo::ServiceEntryPointMongod::handleRequest (151,811,394 samples, 15.57%)</title><rect x="1287.2" y="533" width="246.0" height="15.0" fill="rgb(226,97,23)" rx="2" ry="2" />
+<text  x="1290.17" y="543.5" >mongo::ServiceEntryPointMongod::..</text>
+</g>
+<g >
+<title>mongo::repl::ReplicationCoordinatorImpl::setMyLastDurableOpTimeAndWallTimeForward (5,050,505 samples, 0.52%)</title><rect x="1279.0" y="677" width="8.2" height="15.0" fill="rgb(216,51,12)" rx="2" ry="2" />
+<text  x="1281.98" y="687.5" ></text>
+</g>
+<g >
+<title>__txn_get_snapshot_int (35,745,477 samples, 3.67%)</title><rect x="975.9" y="469" width="58.0" height="15.0" fill="rgb(219,68,16)" rx="2" ry="2" />
+<text  x="978.93" y="479.5" >__txn_..</text>
+</g>
+<g >
+<title>mongo::FTDCController::doLoop (35,040,980 samples, 3.59%)</title><rect x="1533.2" y="725" width="56.8" height="15.0" fill="rgb(224,90,21)" rx="2" ry="2" />
+<text  x="1536.21" y="735.5" >mongo:..</text>
+</g>
+<g >
+<title>[unknown] (8,206,486 samples, 0.84%)</title><rect x="1552.2" y="581" width="13.3" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="1555.19" y="591.5" ></text>
+</g>
+<g >
+<title>mongo::WorkingSetCommon::fetch (73,439,096 samples, 7.53%)</title><rect x="1043.6" y="549" width="119.0" height="15.0" fill="rgb(243,179,42)" rx="2" ry="2" />
+<text  x="1046.60" y="559.5" >mongo::Working..</text>
+</g>
+<g >
+<title>mongo::PlanExecutorImpl::getNext (699,737,701 samples, 71.78%)</title><rect x="106.0" y="645" width="1134.1" height="15.0" fill="rgb(232,126,30)" rx="2" ry="2" />
+<text  x="108.98" y="655.5" >mongo::PlanExecutorImpl::getNext</text>
+</g>
+<g >
+<title>mongo::WiredTigerUtil::setTableLogging (6,801,753 samples, 0.70%)</title><rect x="1295.4" y="181" width="11.0" height="15.0" fill="rgb(235,142,33)" rx="2" ry="2" />
+<text  x="1298.35" y="191.5" ></text>
+</g>
+<g >
+<title>mongo::repl::ReplicationConsistencyMarkersImpl::_upsertOplogTruncateAfterPointDocument (13,917,777 samples, 1.43%)</title><rect x="1256.4" y="629" width="22.6" height="15.0" fill="rgb(241,166,39)" rx="2" ry="2" />
+<text  x="1259.42" y="639.5" >m..</text>
+</g>
+<g >
+<title>mongo::transport::ServiceExecutorSynchronous::schedule (151,811,394 samples, 15.57%)</title><rect x="1287.2" y="597" width="246.0" height="15.0" fill="rgb(251,215,51)" rx="2" ry="2" />
+<text  x="1290.17" y="607.5" >mongo::transport::ServiceExecuto..</text>
+</g>
+<g >
+<title>__wt_config_get.part.0 (5,050,505 samples, 0.52%)</title><rect x="73.2" y="341" width="8.2" height="15.0" fill="rgb(213,39,9)" rx="2" ry="2" />
+<text  x="76.24" y="351.5" ></text>
+</g>
+<g >
+<title>mongo::WiredTigerUtil::getMetadataCreate[abi:cxx11] (5,050,505 samples, 0.52%)</title><rect x="73.2" y="437" width="8.2" height="15.0" fill="rgb(210,23,5)" rx="2" ry="2" />
+<text  x="76.24" y="447.5" ></text>
+</g>
+<g >
+<title>mongo::IndexCatalogImpl::_indexFilteredRecords (22,770,806 samples, 2.34%)</title><rect x="1306.4" y="309" width="36.9" height="15.0" fill="rgb(227,103,24)" rx="2" ry="2" />
+<text  x="1309.38" y="319.5" >mon..</text>
+</g>
+<g >
+<title>std::_Function_handler&lt;void  (151,811,394 samples, 15.57%)</title><rect x="1287.2" y="581" width="246.0" height="15.0" fill="rgb(245,187,44)" rx="2" ry="2" />
+<text  x="1290.17" y="591.5" >std::_Function_handler&lt;void </text>
+</g>
+<g >
+<title>mongo::AbstractIndexAccessMethod::insertKeys (22,770,806 samples, 2.34%)</title><rect x="1306.4" y="277" width="36.9" height="15.0" fill="rgb(245,184,44)" rx="2" ry="2" />
+<text  x="1309.38" y="287.5" >mon..</text>
+</g>
+<g >
+<title>mongo::repl::ReplicationCoordinatorImpl::_setMyLastAppliedOpTimeAndWallTime (6,392,818 samples, 0.66%)</title><rect x="1229.7" y="485" width="10.4" height="15.0" fill="rgb(235,142,34)" rx="2" ry="2" />
+<text  x="1232.69" y="495.5" ></text>
+</g>
+<g >
+<title>mongo::DatabaseImpl::createCollection (11,852,258 samples, 1.22%)</title><rect x="1287.2" y="325" width="19.2" height="15.0" fill="rgb(207,12,2)" rx="2" ry="2" />
+<text  x="1290.17" y="335.5" ></text>
+</g>
+<g >
+<title>__wt_btcur_remove (37,217,687 samples, 3.82%)</title><rect x="663.7" y="533" width="60.3" height="15.0" fill="rgb(251,215,51)" rx="2" ry="2" />
+<text  x="666.66" y="543.5" >__wt_b..</text>
+</g>
+<g >
+<title>mongo::IndexBuildsCoordinator::_setUpIndexBuild (5,050,505 samples, 0.52%)</title><rect x="73.2" y="645" width="8.2" height="15.0" fill="rgb(239,158,37)" rx="2" ry="2" />
+<text  x="76.24" y="655.5" ></text>
+</g>
+<g >
+<title>__wt_row_modify (37,217,687 samples, 3.82%)</title><rect x="663.7" y="517" width="60.3" height="15.0" fill="rgb(232,126,30)" rx="2" ry="2" />
+<text  x="666.66" y="527.5" >__wt_r..</text>
+</g>
+<g >
+<title>mongo::CommandHelpers::runCommandInvocation (151,811,394 samples, 15.57%)</title><rect x="1287.2" y="453" width="246.0" height="15.0" fill="rgb(211,31,7)" rx="2" ry="2" />
+<text  x="1290.17" y="463.5" >mongo::CommandHelpers::runComman..</text>
+</g>
+<g >
+<title>mongo::(anonymous namespace)::makeCollection (11,852,258 samples, 1.22%)</title><rect x="1287.2" y="373" width="19.2" height="15.0" fill="rgb(208,17,4)" rx="2" ry="2" />
+<text  x="1290.17" y="383.5" ></text>
+</g>
+<g >
+<title>mongo::AbstractIndexAccessMethod::BulkBuilderImpl::insert (16,827,581 samples, 1.73%)</title><rect x="32.3" y="533" width="27.3" height="15.0" fill="rgb(246,190,45)" rx="2" ry="2" />
+<text  x="35.32" y="543.5" >m..</text>
+</g>
+<g >
+<title>mongo::DatabaseImpl::userCreateNS (11,852,258 samples, 1.22%)</title><rect x="1287.2" y="341" width="19.2" height="15.0" fill="rgb(229,111,26)" rx="2" ry="2" />
+<text  x="1290.17" y="351.5" ></text>
+</g>
+<g >
+<title>mongo::ServiceStateMachine::_scheduleNextWithGuard (151,811,394 samples, 15.57%)</title><rect x="1287.2" y="613" width="246.0" height="15.0" fill="rgb(214,43,10)" rx="2" ry="2" />
+<text  x="1290.17" y="623.5" >mongo::ServiceStateMachine::_sch..</text>
+</g>
+<g >
+<title>__config_getraw.constprop.1 (6,801,753 samples, 0.70%)</title><rect x="1295.4" y="53" width="11.0" height="15.0" fill="rgb(233,129,30)" rx="2" ry="2" />
+<text  x="1298.35" y="63.5" ></text>
+</g>
+<g >
+<title>mongo::latch_detail::Mutex::_onUnlock (37,228,631 samples, 3.82%)</title><rect x="366.2" y="485" width="60.3" height="15.0" fill="rgb(225,95,22)" rx="2" ry="2" />
+<text  x="369.16" y="495.5" >mongo:..</text>
+</g>
+<g >
+<title>__create_colgroup (5,050,505 samples, 0.52%)</title><rect x="1287.2" y="229" width="8.2" height="15.0" fill="rgb(213,38,9)" rx="2" ry="2" />
+<text  x="1290.17" y="239.5" ></text>
+</g>
+<g >
+<title>mongo::repl::ReplicationConsistencyMarkersImpl::setOplogTruncateAfterPoint (13,917,777 samples, 1.43%)</title><rect x="1256.4" y="645" width="22.6" height="15.0" fill="rgb(238,155,37)" rx="2" ry="2" />
+<text  x="1259.42" y="655.5" >m..</text>
+</g>
+<g >
+<title>mongo::KeyString::Value::getTypeBits (8,616,817 samples, 0.88%)</title><rect x="1329.3" y="213" width="14.0" height="15.0" fill="rgb(254,226,54)" rx="2" ry="2" />
+<text  x="1332.31" y="223.5" ></text>
+</g>
+<g >
+<title>clone3 (151,811,394 samples, 15.57%)</title><rect x="1287.2" y="773" width="246.0" height="15.0" fill="rgb(216,54,12)" rx="2" ry="2" />
+<text  x="1290.17" y="783.5" >clone3</text>
+</g>
+<g >
+<title>mongo::(anonymous namespace)::receivedCommands (151,811,394 samples, 15.57%)</title><rect x="1287.2" y="501" width="246.0" height="15.0" fill="rgb(221,76,18)" rx="2" ry="2" />
+<text  x="1290.17" y="511.5" >mongo::(anonymous namespace)::re..</text>
+</g>
+<g >
+<title>__wt_config_collapse (5,050,505 samples, 0.52%)</title><rect x="73.2" y="357" width="8.2" height="15.0" fill="rgb(223,85,20)" rx="2" ry="2" />
+<text  x="76.24" y="367.5" ></text>
+</g>
+<g >
+<title>mongo::WiredTigerIndexUnique::WiredTigerIndexUnique (6,801,753 samples, 0.70%)</title><rect x="1295.4" y="245" width="11.0" height="15.0" fill="rgb(236,143,34)" rx="2" ry="2" />
+<text  x="1298.35" y="255.5" ></text>
+</g>
+<g >
+<title>__wt_config_gets (53,155,685 samples, 5.45%)</title><rect x="836.5" y="437" width="86.1" height="15.0" fill="rgb(210,27,6)" rx="2" ry="2" />
+<text  x="839.49" y="447.5" >__wt_confi..</text>
+</g>
+<g >
+<title>mongo::CollectionImpl::insertDocuments (139,959,136 samples, 14.36%)</title><rect x="1306.4" y="373" width="226.8" height="15.0" fill="rgb(230,116,27)" rx="2" ry="2" />
+<text  x="1309.38" y="383.5" >mongo::CollectionImpl::insertD..</text>
+</g>
+<g >
+<title>[unknown] (7,838,572 samples, 0.80%)</title><rect x="651.0" y="357" width="12.7" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="653.95" y="367.5" ></text>
+</g>
+<g >
+<title>mongo::(anonymous namespace)::LinuxSystemMetricsCollector::collect (19,918,480 samples, 2.04%)</title><rect x="1533.2" y="693" width="32.3" height="15.0" fill="rgb(219,65,15)" rx="2" ry="2" />
+<text  x="1536.21" y="703.5" >mo..</text>
+</g>
+<g >
+<title>mongo::WiredTigerUtil::setTableLogging (6,801,753 samples, 0.70%)</title><rect x="1295.4" y="197" width="11.0" height="15.0" fill="rgb(235,142,33)" rx="2" ry="2" />
+<text  x="1298.35" y="207.5" ></text>
+</g>
+<g >
+<title>mongo::IndexBuildsCoordinator::_buildIndex (33,968,918 samples, 3.48%)</title><rect x="18.2" y="613" width="55.0" height="15.0" fill="rgb(249,206,49)" rx="2" ry="2" />
+<text  x="21.19" y="623.5" >mongo..</text>
+</g>
+<g >
+<title>[unknown] (5,050,505 samples, 0.52%)</title><rect x="89.6" y="597" width="8.2" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="92.61" y="607.5" ></text>
+</g>
+<g >
+<title>mongo::IndexBuildsCoordinator::_runIndexBuildInner (33,968,918 samples, 3.48%)</title><rect x="18.2" y="629" width="55.0" height="15.0" fill="rgb(222,79,18)" rx="2" ry="2" />
+<text  x="21.19" y="639.5" >mongo..</text>
+</g>
+<g >
+<title>mongo::latch_detail::Mutex::unlock (37,228,631 samples, 3.82%)</title><rect x="366.2" y="501" width="60.3" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="369.16" y="511.5" >mongo:..</text>
+</g>
+<g >
+<title>mongo::WiredTigerRecoveryUnit::doCommitUnitOfWork (11,443,323 samples, 1.17%)</title><rect x="1221.5" y="565" width="18.6" height="15.0" fill="rgb(229,112,26)" rx="2" ry="2" />
+<text  x="1224.51" y="575.5" ></text>
+</g>
+<g >
+<title>[unknown] (5,050,505 samples, 0.52%)</title><rect x="89.6" y="613" width="8.2" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="92.61" y="623.5" ></text>
+</g>
+<g >
+<title>mongo::Document::toBson (6,326,855 samples, 0.65%)</title><rect x="1268.7" y="501" width="10.3" height="15.0" fill="rgb(219,65,15)" rx="2" ry="2" />
+<text  x="1271.73" y="511.5" ></text>
+</g>
+<g >
+<title>mongo::IndexCatalogImpl::_indexRecords (22,770,806 samples, 2.34%)</title><rect x="1306.4" y="325" width="36.9" height="15.0" fill="rgb(242,171,41)" rx="2" ry="2" />
+<text  x="1309.38" y="335.5" >mon..</text>
+</g>
+<g >
+<title>__wt_log_flush (5,050,505 samples, 0.52%)</title><rect x="1248.2" y="661" width="8.2" height="15.0" fill="rgb(233,131,31)" rx="2" ry="2" />
+<text  x="1251.24" y="671.5" ></text>
+</g>
+<g >
+<title>__config_getraw.constprop.1 (5,050,505 samples, 0.52%)</title><rect x="1393.0" y="229" width="8.2" height="15.0" fill="rgb(233,129,30)" rx="2" ry="2" />
+<text  x="1396.03" y="239.5" ></text>
+</g>
+<g >
+<title>mongo::OpObserverImpl::getDocumentKey (73,187,091 samples, 7.51%)</title><rect x="307.9" y="533" width="118.6" height="15.0" fill="rgb(239,159,38)" rx="2" ry="2" />
+<text  x="310.89" y="543.5" >mongo::OpObser..</text>
+</g>
+<g >
+<title>mongo::BtreeKeyGenerator::getKeys (16,827,581 samples, 1.73%)</title><rect x="32.3" y="485" width="27.3" height="15.0" fill="rgb(246,190,45)" rx="2" ry="2" />
+<text  x="35.32" y="495.5" >m..</text>
+</g>
+<g >
+<title>__wt_txn_upd_value_visible_all (6,008,952 samples, 0.62%)</title><rect x="1033.9" y="405" width="9.7" height="15.0" fill="rgb(227,103,24)" rx="2" ry="2" />
+<text  x="1036.86" y="415.5" ></text>
+</g>
+<g >
+<title>std::thread::_State_impl&lt;std::thread::_Invoker&lt;std::tuple&lt;mongo::stdx::thread::thread&lt;mongo::FTDCController::start (35,040,980 samples, 3.59%)</title><rect x="1533.2" y="741" width="56.8" height="15.0" fill="rgb(234,136,32)" rx="2" ry="2" />
+<text  x="1536.21" y="751.5" >std::t..</text>
+</g>
+<g >
+<title>__wt_row_modify (36,054,548 samples, 3.70%)</title><rect x="120.5" y="421" width="58.4" height="15.0" fill="rgb(232,126,30)" rx="2" ry="2" />
+<text  x="123.51" y="431.5" >__wt_r..</text>
+</g>
+<g >
+<title>mongo::WiredTigerUtil::exportTableToBSON (5,050,505 samples, 0.52%)</title><rect x="1565.5" y="565" width="8.2" height="15.0" fill="rgb(233,129,30)" rx="2" ry="2" />
+<text  x="1568.49" y="575.5" ></text>
+</g>
+<g >
+<title>mongo::WiredTigerRecoveryUnit::setTimestamp (17,742,692 samples, 1.82%)</title><rect x="1504.5" y="245" width="28.7" height="15.0" fill="rgb(222,82,19)" rx="2" ry="2" />
+<text  x="1507.45" y="255.5" >mo..</text>
+</g>
+<g >
+<title>mongo::WiredTigerKVEngine::getGroupedSortedDataInterface (5,050,505 samples, 0.52%)</title><rect x="73.2" y="533" width="8.2" height="15.0" fill="rgb(213,37,8)" rx="2" ry="2" />
+<text  x="76.24" y="543.5" ></text>
+</g>
+<g >
+<title>mongo::UpdateDriver::parse (7,590,922 samples, 0.78%)</title><rect x="1256.4" y="549" width="12.3" height="15.0" fill="rgb(216,53,12)" rx="2" ry="2" />
+<text  x="1259.42" y="559.5" ></text>
+</g>
+<g >
+<title>__wt_row_search (7,427,902 samples, 0.76%)</title><rect x="1492.4" y="213" width="12.1" height="15.0" fill="rgb(248,201,48)" rx="2" ry="2" />
+<text  x="1495.41" y="223.5" ></text>
+</g>
+<g >
+<title>__wt_cursor_get_valuev (36,570,647 samples, 3.75%)</title><rect x="1043.6" y="501" width="59.3" height="15.0" fill="rgb(224,90,21)" rx="2" ry="2" />
+<text  x="1046.60" y="511.5" >__wt_c..</text>
+</g>
+<g >
+<title>[unknown] (5,050,505 samples, 0.52%)</title><rect x="1240.1" y="565" width="8.1" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="1243.05" y="575.5" ></text>
+</g>
+<g >
+<title>__wt_config_getones (32,882,217 samples, 3.37%)</title><rect x="922.6" y="421" width="53.3" height="15.0" fill="rgb(230,118,28)" rx="2" ry="2" />
+<text  x="925.64" y="431.5" >__wt_..</text>
+</g>
+<g >
+<title>mongo::repl::StorageInterfaceImpl::upsertById (13,917,777 samples, 1.43%)</title><rect x="1256.4" y="597" width="22.6" height="15.0" fill="rgb(227,101,24)" rx="2" ry="2" />
+<text  x="1259.42" y="607.5" >m..</text>
+</g>
+<g >
+<title>[unknown] (7,838,572 samples, 0.80%)</title><rect x="651.0" y="373" width="12.7" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="653.95" y="383.5" ></text>
+</g>
+<g >
+<title>__wt_btcur_search_near (6,008,952 samples, 0.62%)</title><rect x="1033.9" y="437" width="9.7" height="15.0" fill="rgb(217,55,13)" rx="2" ry="2" />
+<text  x="1036.86" y="447.5" ></text>
+</g>
+<g >
+<title>mongo::BtreeKeyGenerator::_extractNextElement (8,711,799 samples, 0.89%)</title><rect x="32.3" y="453" width="14.1" height="15.0" fill="rgb(239,157,37)" rx="2" ry="2" />
+<text  x="35.32" y="463.5" ></text>
+</g>
+<g >
+<title>[unknown] (8,206,486 samples, 0.84%)</title><rect x="1552.2" y="597" width="13.3" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="1555.19" y="607.5" ></text>
+</g>
+<g >
+<title>__curfile_remove (79,560,665 samples, 8.16%)</title><rect x="178.9" y="453" width="129.0" height="15.0" fill="rgb(228,108,25)" rx="2" ry="2" />
+<text  x="181.94" y="463.5" >__curfile_remove</text>
+</g>
+<g >
+<title>mongo::WiredTigerCursor::WiredTigerCursor (9,103,484 samples, 0.93%)</title><rect x="1306.4" y="245" width="14.7" height="15.0" fill="rgb(207,10,2)" rx="2" ry="2" />
+<text  x="1309.38" y="255.5" ></text>
+</g>
+<g >
+<title>execute_native_thread_routine (39,019,423 samples, 4.00%)</title><rect x="18.2" y="757" width="63.2" height="15.0" fill="rgb(233,129,30)" rx="2" ry="2" />
+<text  x="21.19" y="767.5" >execut..</text>
+</g>
+<g >
+<title>__curfile_insert (5,050,505 samples, 0.52%)</title><rect x="1321.1" y="213" width="8.2" height="15.0" fill="rgb(233,130,31)" rx="2" ry="2" />
+<text  x="1324.13" y="223.5" ></text>
+</g>
+<g >
+<title>[unknown] (8,206,486 samples, 0.84%)</title><rect x="1552.2" y="613" width="13.3" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="1555.19" y="623.5" ></text>
+</g>
+<g >
+<title>mongo::WiredTigerIndex::unindex (115,615,213 samples, 11.86%)</title><rect x="120.5" y="485" width="187.4" height="15.0" fill="rgb(215,49,11)" rx="2" ry="2" />
+<text  x="123.51" y="495.5" >mongo::WiredTigerIndex::..</text>
+</g>
+<g >
+<title>__config_next (5,050,505 samples, 0.52%)</title><rect x="1287.2" y="149" width="8.2" height="15.0" fill="rgb(215,46,11)" rx="2" ry="2" />
+<text  x="1290.17" y="159.5" ></text>
+</g>
+<g >
+<title>mongo::BSONObj::getField (8,711,799 samples, 0.89%)</title><rect x="32.3" y="421" width="14.1" height="15.0" fill="rgb(252,216,51)" rx="2" ry="2" />
+<text  x="35.32" y="431.5" ></text>
+</g>
+</g>
+</svg>
