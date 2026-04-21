@@ -1,0 +1,1316 @@
+Warning:
+Kernel address maps (/proc/{kallsyms,modules}) were restricted.
+
+Check /proc/sys/kernel/kptr_restrict before running 'perf record'.
+
+As no suitable kallsyms nor vmlinux was found, kernel samples
+can't be resolved.
+
+Samples in kernel modules can't be resolved as well.
+
+# To display the perf.data header info, please use --header/--header-only options.
+#
+#
+# Total Lost Samples: 0
+#
+# Samples: 58  of event 'cycles:P'
+# Event count (approx.): 974880810
+#
+# Overhead       Samples  Command          Shared Object     Symbol                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+# ........  ............  ...............  ................  ..............................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................
+#
+     6.59%             2  TTLMonitor       mongod            [.] __wt_row_modify
+            |
+            ---clone3
+               execute_native_thread_routine
+               std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::BackgroundJob::go()::{lambda()#2}, , 0>(mongo::BackgroundJob::go()::{lambda()#2})::{lambda()#1}> > >::_M_run()
+               mongo::BackgroundJob::jobBody()
+               mongo::TTLMonitor::run()
+               mongo::TTLMonitor::doTTLPass()
+               mongo::TTLMonitor::doTTLForIndex(mongo::OperationContext*, mongo::NamespaceString, mongo::BSONObj)
+               mongo::PlanExecutorImpl::executePlan()
+               mongo::PlanExecutorImpl::getNext(mongo::Document*, mongo::RecordId*)
+               mongo::PlanExecutorImpl::_getNextImpl(mongo::Snapshotted<mongo::Document>*, mongo::RecordId*)
+               mongo::PlanStage::work(unsigned long*)
+               mongo::DeleteStage::doWork(unsigned long*)
+               mongo::CollectionImpl::deleteDocument(mongo::OperationContext*, int, mongo::RecordId, mongo::OpDebug*, bool, bool, mongo::Collection::StoreDeletedDoc)
+               |          
+               |--3.82%--mongo::WiredTigerRecordStore::deleteRecord(mongo::OperationContext*, mongo::RecordId const&)
+               |          __curfile_remove
+               |          __wt_btcur_remove
+               |          __wt_row_modify
+               |          
+                --2.78%--mongo::OpObserverRegistry::onDelete(mongo::OperationContext*, mongo::NamespaceString const&, boost::optional<mongo::UUID>, int, bool, boost::optional<mongo::BSONObj> const&)
+                          mongo::OpObserverImpl::onDelete(mongo::OperationContext*, mongo::NamespaceString const&, boost::optional<mongo::UUID>, int, bool, boost::optional<mongo::BSONObj> const&)
+                          mongo::(anonymous namespace)::logOperation(mongo::OperationContext*, mongo::repl::MutableOplogEntry*)
+                          mongo::repl::logOp(mongo::OperationContext*, mongo::repl::MutableOplogEntry*)
+                          mongo::repl::_logOpsInner(mongo::OperationContext*, mongo::NamespaceString const&, std::vector<mongo::Record, std::allocator<mongo::Record> >*, std::vector<mongo::Timestamp, std::allocator<mongo::Timestamp> > const&, mongo::Collection*, mongo::repl::OpTime, mongo::Date_t)
+                          mongo::CollectionImpl::insertDocumentsForOplog(mongo::OperationContext*, std::vector<mongo::Record, std::allocator<mongo::Record> >*, std::vector<mongo::Timestamp, std::allocator<mongo::Timestamp> > const&)
+                          mongo::WiredTigerRecordStore::insertRecords(mongo::OperationContext*, std::vector<mongo::Record, std::allocator<mongo::Record> >*, std::vector<mongo::Timestamp, std::allocator<mongo::Timestamp> > const&)
+                          mongo::WiredTigerRecordStore::_insertRecords(mongo::OperationContext*, mongo::Record*, mongo::Timestamp const*, unsigned long)
+                          __curfile_insert
+                          __wt_btcur_insert
+                          __wt_row_modify
+
+     5.45%             2  TTLMonitor       mongod            [.] __config_next
+            |
+            ---clone3
+               execute_native_thread_routine
+               std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::BackgroundJob::go()::{lambda()#2}, , 0>(mongo::BackgroundJob::go()::{lambda()#2})::{lambda()#1}> > >::_M_run()
+               mongo::BackgroundJob::jobBody()
+               mongo::TTLMonitor::run()
+               mongo::TTLMonitor::doTTLPass()
+               mongo::TTLMonitor::doTTLForIndex(mongo::OperationContext*, mongo::NamespaceString, mongo::BSONObj)
+               mongo::PlanExecutorImpl::executePlan()
+               mongo::PlanExecutorImpl::getNext(mongo::Document*, mongo::RecordId*)
+               mongo::PlanExecutorImpl::_getNextImpl(mongo::Snapshotted<mongo::Document>*, mongo::RecordId*)
+               mongo::PlanStage::work(unsigned long*)
+               mongo::DeleteStage::doWork(unsigned long*)
+               mongo::PlanStage::restoreState()
+               mongo::RequiresCollectionStageBase<mongo::Collection const*>::doRestoreState()
+               mongo::RequiresIndexStage::doRestoreStateRequiresCollection()
+               mongo::(anonymous namespace)::WiredTigerIndexCursorBase::restore()
+               mongo::WiredTigerRecoveryUnit::getSession()
+               mongo::WiredTigerRecoveryUnit::_txnOpen()
+               mongo::WiredTigerBeginTxnBlock::WiredTigerBeginTxnBlock(__wt_session*, mongo::PrepareConflictBehavior, mongo::WiredTigerBeginTxnBlock::RoundUpPreparedTimestamps, mongo::WiredTigerBeginTxnBlock::RoundUpReadTimestamp)
+               __session_begin_transaction
+               __wt_txn_config
+               __wt_config_gets
+               __wt_config_get.part.0
+               __config_getraw.constprop.1
+               __config_next
+
+     4.46%             2  TTLMonitor       mongod            [.] __wt_txn_modify
+            |
+            ---clone3
+               execute_native_thread_routine
+               std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::BackgroundJob::go()::{lambda()#2}, , 0>(mongo::BackgroundJob::go()::{lambda()#2})::{lambda()#1}> > >::_M_run()
+               mongo::BackgroundJob::jobBody()
+               mongo::TTLMonitor::run()
+               mongo::TTLMonitor::doTTLPass()
+               mongo::TTLMonitor::doTTLForIndex(mongo::OperationContext*, mongo::NamespaceString, mongo::BSONObj)
+               mongo::PlanExecutorImpl::executePlan()
+               mongo::PlanExecutorImpl::getNext(mongo::Document*, mongo::RecordId*)
+               mongo::PlanExecutorImpl::_getNextImpl(mongo::Snapshotted<mongo::Document>*, mongo::RecordId*)
+               mongo::PlanStage::work(unsigned long*)
+               mongo::DeleteStage::doWork(unsigned long*)
+               mongo::CollectionImpl::deleteDocument(mongo::OperationContext*, int, mongo::RecordId, mongo::OpDebug*, bool, bool, mongo::Collection::StoreDeletedDoc)
+               mongo::IndexCatalogImpl::unindexRecord(mongo::OperationContext*, mongo::BSONObj const&, mongo::RecordId const&, bool, long*)
+               mongo::IndexCatalogImpl::_unindexRecord(mongo::OperationContext*, mongo::IndexCatalogEntry*, mongo::BSONObj const&, mongo::RecordId const&, bool, long*)
+               mongo::IndexCatalogImpl::_unindexKeys(mongo::OperationContext*, mongo::IndexCatalogEntry*, std::vector<mongo::KeyString::Value, std::allocator<mongo::KeyString::Value> > const&, mongo::BSONObj const&, mongo::RecordId, bool, long*)
+               mongo::AbstractIndexAccessMethod::removeKeys(mongo::OperationContext*, std::vector<mongo::KeyString::Value, std::allocator<mongo::KeyString::Value> > const&, mongo::RecordId const&, mongo::InsertDeleteOptions const&, long*)
+               mongo::AbstractIndexAccessMethod::removeOneKey(mongo::OperationContext*, mongo::KeyString::Value const&, mongo::RecordId const&, bool)
+               mongo::WiredTigerIndex::unindex(mongo::OperationContext*, mongo::KeyString::Value const&, bool)
+               |          
+               |--3.70%--mongo::WiredTigerIndexStandard::_unindex(mongo::OperationContext*, __wt_cursor*, mongo::KeyString::Value const&, bool)
+               |          __curfile_remove
+               |          __wt_btcur_remove
+               |          __wt_row_modify
+               |          __wt_txn_modify
+               |          
+                --0.76%--mongo::WiredTigerIndexUnique::_unindexTimestampUnsafe(mongo::OperationContext*, __wt_cursor*, mongo::KeyString::Value const&, bool)
+                          __curfile_remove
+                          __wt_btcur_remove
+                          __wt_row_modify
+                          __wt_txn_modify
+
+     3.87%             1  TTLMonitor       mongod            [.] mongo::OpObserverRegistry::onDelete(mongo::OperationContext*, mongo::NamespaceString const&, boost::optional<mongo::UUID>, int, bool, boost::optional<mongo::BSONObj> const&)
+            |
+            ---clone3
+               execute_native_thread_routine
+               std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::BackgroundJob::go()::{lambda()#2}, , 0>(mongo::BackgroundJob::go()::{lambda()#2})::{lambda()#1}> > >::_M_run()
+               mongo::BackgroundJob::jobBody()
+               mongo::TTLMonitor::run()
+               mongo::TTLMonitor::doTTLPass()
+               mongo::TTLMonitor::doTTLForIndex(mongo::OperationContext*, mongo::NamespaceString, mongo::BSONObj)
+               mongo::PlanExecutorImpl::executePlan()
+               mongo::PlanExecutorImpl::getNext(mongo::Document*, mongo::RecordId*)
+               mongo::PlanExecutorImpl::_getNextImpl(mongo::Snapshotted<mongo::Document>*, mongo::RecordId*)
+               mongo::PlanStage::work(unsigned long*)
+               mongo::DeleteStage::doWork(unsigned long*)
+               mongo::CollectionImpl::deleteDocument(mongo::OperationContext*, int, mongo::RecordId, mongo::OpDebug*, bool, bool, mongo::Collection::StoreDeletedDoc)
+               mongo::OpObserverRegistry::onDelete(mongo::OperationContext*, mongo::NamespaceString const&, boost::optional<mongo::UUID>, int, bool, boost::optional<mongo::BSONObj> const&)
+
+     3.82%             1  TTLMonitor       mongod            [.] mongo::Client::getCurrent()
+            |
+            ---clone3
+               execute_native_thread_routine
+               std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::BackgroundJob::go()::{lambda()#2}, , 0>(mongo::BackgroundJob::go()::{lambda()#2})::{lambda()#1}> > >::_M_run()
+               mongo::BackgroundJob::jobBody()
+               mongo::TTLMonitor::run()
+               mongo::TTLMonitor::doTTLPass()
+               mongo::TTLMonitor::doTTLForIndex(mongo::OperationContext*, mongo::NamespaceString, mongo::BSONObj)
+               mongo::PlanExecutorImpl::executePlan()
+               mongo::PlanExecutorImpl::getNext(mongo::Document*, mongo::RecordId*)
+               mongo::PlanExecutorImpl::_getNextImpl(mongo::Snapshotted<mongo::Document>*, mongo::RecordId*)
+               mongo::PlanStage::work(unsigned long*)
+               mongo::DeleteStage::doWork(unsigned long*)
+               mongo::CollectionImpl::deleteDocument(mongo::OperationContext*, int, mongo::RecordId, mongo::OpDebug*, bool, bool, mongo::Collection::StoreDeletedDoc)
+               mongo::OpObserverRegistry::aboutToDelete(mongo::OperationContext*, mongo::NamespaceString const&, mongo::BSONObj const&)
+               mongo::OpObserverImpl::aboutToDelete(mongo::OperationContext*, mongo::NamespaceString const&, mongo::BSONObj const&)
+               mongo::OpObserverImpl::getDocumentKey(mongo::OperationContext*, mongo::NamespaceString const&, mongo::BSONObj const&)
+               mongo::CollectionShardingState::get(mongo::OperationContext*, mongo::NamespaceString const&)
+               mongo::latch_detail::Mutex::unlock()
+               mongo::latch_detail::Mutex::_onUnlock()
+               mongo::(anonymous namespace)::DiagnosticListener::onUnlock(mongo::latch_detail::Identity const&)
+
+     3.81%             1  TTLMonitor       mongod            [.] __wt_search_insert
+            |
+            ---clone3
+               execute_native_thread_routine
+               std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::BackgroundJob::go()::{lambda()#2}, , 0>(mongo::BackgroundJob::go()::{lambda()#2})::{lambda()#1}> > >::_M_run()
+               mongo::BackgroundJob::jobBody()
+               mongo::TTLMonitor::run()
+               mongo::TTLMonitor::doTTLPass()
+               mongo::TTLMonitor::doTTLForIndex(mongo::OperationContext*, mongo::NamespaceString, mongo::BSONObj)
+               mongo::PlanExecutorImpl::executePlan()
+               mongo::PlanExecutorImpl::getNext(mongo::Document*, mongo::RecordId*)
+               mongo::PlanExecutorImpl::_getNextImpl(mongo::Snapshotted<mongo::Document>*, mongo::RecordId*)
+               mongo::PlanStage::work(unsigned long*)
+               mongo::DeleteStage::doWork(unsigned long*)
+               mongo::CollectionImpl::deleteDocument(mongo::OperationContext*, int, mongo::RecordId, mongo::OpDebug*, bool, bool, mongo::Collection::StoreDeletedDoc)
+               mongo::IndexCatalogImpl::unindexRecord(mongo::OperationContext*, mongo::BSONObj const&, mongo::RecordId const&, bool, long*)
+               mongo::IndexCatalogImpl::_unindexRecord(mongo::OperationContext*, mongo::IndexCatalogEntry*, mongo::BSONObj const&, mongo::RecordId const&, bool, long*)
+               mongo::IndexCatalogImpl::_unindexKeys(mongo::OperationContext*, mongo::IndexCatalogEntry*, std::vector<mongo::KeyString::Value, std::allocator<mongo::KeyString::Value> > const&, mongo::BSONObj const&, mongo::RecordId, bool, long*)
+               mongo::AbstractIndexAccessMethod::removeKeys(mongo::OperationContext*, std::vector<mongo::KeyString::Value, std::allocator<mongo::KeyString::Value> > const&, mongo::RecordId const&, mongo::InsertDeleteOptions const&, long*)
+               mongo::AbstractIndexAccessMethod::removeOneKey(mongo::OperationContext*, mongo::KeyString::Value const&, mongo::RecordId const&, bool)
+               mongo::WiredTigerIndex::unindex(mongo::OperationContext*, mongo::KeyString::Value const&, bool)
+               mongo::WiredTigerIndexUnique::_unindexTimestampUnsafe(mongo::OperationContext*, __wt_cursor*, mongo::KeyString::Value const&, bool)
+               __curfile_remove
+               __wt_btcur_remove
+               __wt_row_search
+               __wt_search_insert
+
+     3.79%             1  TTLMonitor       mongod            [.] mongo::latch_detail::Mutex::_onUnlock()
+            |
+            ---clone3
+               execute_native_thread_routine
+               std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::BackgroundJob::go()::{lambda()#2}, , 0>(mongo::BackgroundJob::go()::{lambda()#2})::{lambda()#1}> > >::_M_run()
+               mongo::BackgroundJob::jobBody()
+               mongo::TTLMonitor::run()
+               mongo::TTLMonitor::doTTLPass()
+               mongo::TTLMonitor::doTTLForIndex(mongo::OperationContext*, mongo::NamespaceString, mongo::BSONObj)
+               mongo::PlanExecutorImpl::executePlan()
+               mongo::PlanExecutorImpl::getNext(mongo::Document*, mongo::RecordId*)
+               mongo::PlanExecutorImpl::_getNextImpl(mongo::Snapshotted<mongo::Document>*, mongo::RecordId*)
+               mongo::PlanStage::work(unsigned long*)
+               mongo::DeleteStage::doWork(unsigned long*)
+               mongo::CollectionImpl::deleteDocument(mongo::OperationContext*, int, mongo::RecordId, mongo::OpDebug*, bool, bool, mongo::Collection::StoreDeletedDoc)
+               mongo::OpObserverRegistry::onDelete(mongo::OperationContext*, mongo::NamespaceString const&, boost::optional<mongo::UUID>, int, bool, boost::optional<mongo::BSONObj> const&)
+               mongo::OpObserverImpl::onDelete(mongo::OperationContext*, mongo::NamespaceString const&, boost::optional<mongo::UUID>, int, bool, boost::optional<mongo::BSONObj> const&)
+               mongo::(anonymous namespace)::logOperation(mongo::OperationContext*, mongo::repl::MutableOplogEntry*)
+               mongo::repl::logOp(mongo::OperationContext*, mongo::repl::MutableOplogEntry*)
+               mongo::repl::LocalOplogInfo::getNextOpTimes(mongo::OperationContext*, unsigned long)
+               mongo::LogicalClock::reserveTicks(unsigned long)
+               mongo::latch_detail::Mutex::unlock()
+               mongo::latch_detail::Mutex::_onUnlock()
+
+     3.78%             1  TTLMonitor       mongod            [.] __wt_btcur_search
+            |
+            ---clone3
+               execute_native_thread_routine
+               std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::BackgroundJob::go()::{lambda()#2}, , 0>(mongo::BackgroundJob::go()::{lambda()#2})::{lambda()#1}> > >::_M_run()
+               mongo::BackgroundJob::jobBody()
+               mongo::TTLMonitor::run()
+               mongo::TTLMonitor::doTTLPass()
+               mongo::TTLMonitor::doTTLForIndex(mongo::OperationContext*, mongo::NamespaceString, mongo::BSONObj)
+               mongo::PlanExecutorImpl::executePlan()
+               mongo::PlanExecutorImpl::getNext(mongo::Document*, mongo::RecordId*)
+               mongo::PlanExecutorImpl::_getNextImpl(mongo::Snapshotted<mongo::Document>*, mongo::RecordId*)
+               mongo::PlanStage::work(unsigned long*)
+               mongo::DeleteStage::doWork(unsigned long*)
+               mongo::PlanStage::work(unsigned long*)
+               mongo::FetchStage::doWork(unsigned long*)
+               mongo::WorkingSetCommon::fetch(mongo::OperationContext*, mongo::WorkingSet*, unsigned long, mongo::unowned_ptr<mongo::SeekableRecordCursor>, mongo::NamespaceString const&)
+               mongo::WiredTigerRecordStoreCursorBase::seekExact(mongo::RecordId const&)
+               int mongo::wiredTigerPrepareConflictRetry<mongo::WiredTigerRecordStoreCursorBase::seekExact(mongo::RecordId const&)::{lambda()#1}>(mongo::OperationContext*, mongo::WiredTigerRecordStoreCursorBase::seekExact(mongo::RecordId const&)::{lambda()#1}&&)
+               __curfile_search
+
+     3.77%             1  TTLMonitor       mongod            [.] __wt_btcur_insert
+            |
+            ---clone3
+               execute_native_thread_routine
+               std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::BackgroundJob::go()::{lambda()#2}, , 0>(mongo::BackgroundJob::go()::{lambda()#2})::{lambda()#1}> > >::_M_run()
+               mongo::BackgroundJob::jobBody()
+               mongo::TTLMonitor::run()
+               mongo::TTLMonitor::doTTLPass()
+               mongo::TTLMonitor::doTTLForIndex(mongo::OperationContext*, mongo::NamespaceString, mongo::BSONObj)
+               mongo::PlanExecutorImpl::executePlan()
+               mongo::PlanExecutorImpl::getNext(mongo::Document*, mongo::RecordId*)
+               mongo::PlanExecutorImpl::_getNextImpl(mongo::Snapshotted<mongo::Document>*, mongo::RecordId*)
+               mongo::PlanStage::work(unsigned long*)
+               mongo::DeleteStage::doWork(unsigned long*)
+               mongo::CollectionImpl::deleteDocument(mongo::OperationContext*, int, mongo::RecordId, mongo::OpDebug*, bool, bool, mongo::Collection::StoreDeletedDoc)
+               mongo::OpObserverRegistry::onDelete(mongo::OperationContext*, mongo::NamespaceString const&, boost::optional<mongo::UUID>, int, bool, boost::optional<mongo::BSONObj> const&)
+               mongo::OpObserverImpl::onDelete(mongo::OperationContext*, mongo::NamespaceString const&, boost::optional<mongo::UUID>, int, bool, boost::optional<mongo::BSONObj> const&)
+               mongo::(anonymous namespace)::logOperation(mongo::OperationContext*, mongo::repl::MutableOplogEntry*)
+               mongo::repl::logOp(mongo::OperationContext*, mongo::repl::MutableOplogEntry*)
+               mongo::repl::_logOpsInner(mongo::OperationContext*, mongo::NamespaceString const&, std::vector<mongo::Record, std::allocator<mongo::Record> >*, std::vector<mongo::Timestamp, std::allocator<mongo::Timestamp> > const&, mongo::Collection*, mongo::repl::OpTime, mongo::Date_t)
+               mongo::CollectionImpl::insertDocumentsForOplog(mongo::OperationContext*, std::vector<mongo::Record, std::allocator<mongo::Record> >*, std::vector<mongo::Timestamp, std::allocator<mongo::Timestamp> > const&)
+               mongo::WiredTigerRecordStore::insertRecords(mongo::OperationContext*, std::vector<mongo::Record, std::allocator<mongo::Record> >*, std::vector<mongo::Timestamp, std::allocator<mongo::Timestamp> > const&)
+               mongo::WiredTigerRecordStore::_insertRecords(mongo::OperationContext*, mongo::Record*, mongo::Timestamp const*, unsigned long)
+               __curfile_insert
+               __wt_btcur_insert
+
+     3.75%             1  TTLMonitor       mongod            [.] __wt_cursor_get_valuev
+            |
+            ---clone3
+               execute_native_thread_routine
+               std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::BackgroundJob::go()::{lambda()#2}, , 0>(mongo::BackgroundJob::go()::{lambda()#2})::{lambda()#1}> > >::_M_run()
+               mongo::BackgroundJob::jobBody()
+               mongo::TTLMonitor::run()
+               mongo::TTLMonitor::doTTLPass()
+               mongo::TTLMonitor::doTTLForIndex(mongo::OperationContext*, mongo::NamespaceString, mongo::BSONObj)
+               mongo::PlanExecutorImpl::executePlan()
+               mongo::PlanExecutorImpl::getNext(mongo::Document*, mongo::RecordId*)
+               mongo::PlanExecutorImpl::_getNextImpl(mongo::Snapshotted<mongo::Document>*, mongo::RecordId*)
+               mongo::PlanStage::work(unsigned long*)
+               mongo::DeleteStage::doWork(unsigned long*)
+               mongo::PlanStage::work(unsigned long*)
+               mongo::FetchStage::doWork(unsigned long*)
+               mongo::WorkingSetCommon::fetch(mongo::OperationContext*, mongo::WorkingSet*, unsigned long, mongo::unowned_ptr<mongo::SeekableRecordCursor>, mongo::NamespaceString const&)
+               mongo::WiredTigerRecordStoreCursorBase::seekExact(mongo::RecordId const&)
+               __wt_cursor_get_value
+               __wt_cursor_get_valuev
+
+     3.73%             1  TTLMonitor       mongod            [.] mongo::WorkingSetCommon::fetch(mongo::OperationContext*, mongo::WorkingSet*, unsigned long, mongo::unowned_ptr<mongo::SeekableRecordCursor>, mongo::NamespaceString const&)
+            |
+            ---clone3
+               execute_native_thread_routine
+               std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::BackgroundJob::go()::{lambda()#2}, , 0>(mongo::BackgroundJob::go()::{lambda()#2})::{lambda()#1}> > >::_M_run()
+               mongo::BackgroundJob::jobBody()
+               mongo::TTLMonitor::run()
+               mongo::TTLMonitor::doTTLPass()
+               mongo::TTLMonitor::doTTLForIndex(mongo::OperationContext*, mongo::NamespaceString, mongo::BSONObj)
+               mongo::PlanExecutorImpl::executePlan()
+               mongo::PlanExecutorImpl::getNext(mongo::Document*, mongo::RecordId*)
+               mongo::PlanExecutorImpl::_getNextImpl(mongo::Snapshotted<mongo::Document>*, mongo::RecordId*)
+               mongo::PlanStage::work(unsigned long*)
+               mongo::DeleteStage::doWork(unsigned long*)
+               mongo::PlanStage::work(unsigned long*)
+               mongo::WorkingSetCommon::fetch(mongo::OperationContext*, mongo::WorkingSet*, unsigned long, mongo::unowned_ptr<mongo::SeekableRecordCursor>, mongo::NamespaceString const&)
+
+     3.69%             1  TTLMonitor       mongod            [.] mongo::OpObserverImpl::getDocumentKey(mongo::OperationContext*, mongo::NamespaceString const&, mongo::BSONObj const&)
+            |
+            ---clone3
+               execute_native_thread_routine
+               std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::BackgroundJob::go()::{lambda()#2}, , 0>(mongo::BackgroundJob::go()::{lambda()#2})::{lambda()#1}> > >::_M_run()
+               mongo::BackgroundJob::jobBody()
+               mongo::TTLMonitor::run()
+               mongo::TTLMonitor::doTTLPass()
+               mongo::TTLMonitor::doTTLForIndex(mongo::OperationContext*, mongo::NamespaceString, mongo::BSONObj)
+               mongo::PlanExecutorImpl::executePlan()
+               mongo::PlanExecutorImpl::getNext(mongo::Document*, mongo::RecordId*)
+               mongo::PlanExecutorImpl::_getNextImpl(mongo::Snapshotted<mongo::Document>*, mongo::RecordId*)
+               mongo::PlanStage::work(unsigned long*)
+               mongo::DeleteStage::doWork(unsigned long*)
+               mongo::CollectionImpl::deleteDocument(mongo::OperationContext*, int, mongo::RecordId, mongo::OpDebug*, bool, bool, mongo::Collection::StoreDeletedDoc)
+               mongo::OpObserverRegistry::aboutToDelete(mongo::OperationContext*, mongo::NamespaceString const&, mongo::BSONObj const&)
+               mongo::OpObserverImpl::aboutToDelete(mongo::OperationContext*, mongo::NamespaceString const&, mongo::BSONObj const&)
+               mongo::OpObserverImpl::getDocumentKey(mongo::OperationContext*, mongo::NamespaceString const&, mongo::BSONObj const&)
+
+     3.68%             1  TTLMonitor       mongod            [.] mongo::(anonymous namespace)::_todb(mongo::StringData)
+            |
+            ---clone3
+               execute_native_thread_routine
+               std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::BackgroundJob::go()::{lambda()#2}, , 0>(mongo::BackgroundJob::go()::{lambda()#2})::{lambda()#1}> > >::_M_run()
+               mongo::BackgroundJob::jobBody()
+               mongo::TTLMonitor::run()
+               mongo::TTLMonitor::doTTLPass()
+               mongo::TTLMonitor::doTTLForIndex(mongo::OperationContext*, mongo::NamespaceString, mongo::BSONObj)
+               mongo::PlanExecutorImpl::executePlan()
+               mongo::PlanExecutorImpl::getNext(mongo::Document*, mongo::RecordId*)
+               mongo::PlanExecutorImpl::_getNextImpl(mongo::Snapshotted<mongo::Document>*, mongo::RecordId*)
+               mongo::PlanStage::work(unsigned long*)
+               mongo::DeleteStage::doWork(unsigned long*)
+               mongo::PlanStage::restoreState()
+               mongo::RequiresCollectionStageBase<mongo::Collection const*>::doRestoreState()
+               mongo::(anonymous namespace)::_todb(mongo::StringData)
+
+     3.67%             1  TTLMonitor       mongod            [.] __txn_get_snapshot_int
+            |
+            ---clone3
+               execute_native_thread_routine
+               std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::BackgroundJob::go()::{lambda()#2}, , 0>(mongo::BackgroundJob::go()::{lambda()#2})::{lambda()#1}> > >::_M_run()
+               mongo::BackgroundJob::jobBody()
+               mongo::TTLMonitor::run()
+               mongo::TTLMonitor::doTTLPass()
+               mongo::TTLMonitor::doTTLForIndex(mongo::OperationContext*, mongo::NamespaceString, mongo::BSONObj)
+               mongo::PlanExecutorImpl::executePlan()
+               mongo::PlanExecutorImpl::getNext(mongo::Document*, mongo::RecordId*)
+               mongo::PlanExecutorImpl::_getNextImpl(mongo::Snapshotted<mongo::Document>*, mongo::RecordId*)
+               mongo::PlanStage::work(unsigned long*)
+               mongo::DeleteStage::doWork(unsigned long*)
+               mongo::PlanStage::restoreState()
+               mongo::RequiresCollectionStageBase<mongo::Collection const*>::doRestoreState()
+               mongo::RequiresIndexStage::doRestoreStateRequiresCollection()
+               mongo::(anonymous namespace)::WiredTigerIndexCursorBase::restore()
+               mongo::WiredTigerRecoveryUnit::getSession()
+               mongo::WiredTigerRecoveryUnit::_txnOpen()
+               mongo::WiredTigerBeginTxnBlock::WiredTigerBeginTxnBlock(__wt_session*, mongo::PrepareConflictBehavior, mongo::WiredTigerBeginTxnBlock::RoundUpPreparedTimestamps, mongo::WiredTigerBeginTxnBlock::RoundUpReadTimestamp)
+               __txn_get_snapshot_int
+
+     3.58%             1  TTLMonitor       mongod            [.] __wt_cursor_valid
+            |
+            ---clone3
+               execute_native_thread_routine
+               std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::BackgroundJob::go()::{lambda()#2}, , 0>(mongo::BackgroundJob::go()::{lambda()#2})::{lambda()#1}> > >::_M_run()
+               mongo::BackgroundJob::jobBody()
+               mongo::TTLMonitor::run()
+               mongo::TTLMonitor::doTTLPass()
+               mongo::TTLMonitor::doTTLForIndex(mongo::OperationContext*, mongo::NamespaceString, mongo::BSONObj)
+               mongo::PlanExecutorImpl::executePlan()
+               mongo::PlanExecutorImpl::getNext(mongo::Document*, mongo::RecordId*)
+               mongo::PlanExecutorImpl::_getNextImpl(mongo::Snapshotted<mongo::Document>*, mongo::RecordId*)
+               mongo::PlanStage::work(unsigned long*)
+               mongo::DeleteStage::doWork(unsigned long*)
+               mongo::CollectionImpl::deleteDocument(mongo::OperationContext*, int, mongo::RecordId, mongo::OpDebug*, bool, bool, mongo::Collection::StoreDeletedDoc)
+               mongo::IndexCatalogImpl::unindexRecord(mongo::OperationContext*, mongo::BSONObj const&, mongo::RecordId const&, bool, long*)
+               mongo::IndexCatalogImpl::_unindexRecord(mongo::OperationContext*, mongo::IndexCatalogEntry*, mongo::BSONObj const&, mongo::RecordId const&, bool, long*)
+               mongo::IndexCatalogImpl::_unindexKeys(mongo::OperationContext*, mongo::IndexCatalogEntry*, std::vector<mongo::KeyString::Value, std::allocator<mongo::KeyString::Value> > const&, mongo::BSONObj const&, mongo::RecordId, bool, long*)
+               mongo::AbstractIndexAccessMethod::removeKeys(mongo::OperationContext*, std::vector<mongo::KeyString::Value, std::allocator<mongo::KeyString::Value> > const&, mongo::RecordId const&, mongo::InsertDeleteOptions const&, long*)
+               mongo::AbstractIndexAccessMethod::removeOneKey(mongo::OperationContext*, mongo::KeyString::Value const&, mongo::RecordId const&, bool)
+               mongo::WiredTigerIndex::unindex(mongo::OperationContext*, mongo::KeyString::Value const&, bool)
+               mongo::WiredTigerIndexUnique::_unindexTimestampUnsafe(mongo::OperationContext*, __wt_cursor*, mongo::KeyString::Value const&, bool)
+               __curfile_remove
+               __wt_btcur_remove
+               __wt_cursor_valid
+
+     3.55%             5  conn11           mongod            [.] __config_next
+            |
+            ---clone3
+               start_thread
+               mongo::(anonymous namespace)::runFunc(void*)
+               std::_Function_handler<void (), mongo::launchServiceWorkerThread(std::function<void ()>)::{lambda()#3}>::_M_invoke(std::_Any_data const&)
+               std::_Function_handler<void (), mongo::transport::ServiceExecutorSynchronous::schedule(std::function<void ()>, mongo::transport::ServiceExecutor::ScheduleFlags, mongo::transport::ServiceExecutorTaskName)::{lambda()#2}>::_M_invoke(std::_Any_data const&)
+               std::_Function_handler<void (), mongo::ServiceStateMachine::_scheduleNextWithGuard(mongo::ServiceStateMachine::ThreadGuard, mongo::transport::ServiceExecutor::ScheduleFlags, mongo::transport::ServiceExecutorTaskName, mongo::ServiceStateMachine::Ownership)::{lambda()#1}>::_M_invoke(std::_Any_data const&)
+               mongo::ServiceStateMachine::_runNextInGuard(mongo::ServiceStateMachine::ThreadGuard)
+               mongo::ServiceStateMachine::_sourceMessage(mongo::ServiceStateMachine::ThreadGuard)
+               auto mongo::future_details::call<mongo::ServiceStateMachine::_sourceMessage(mongo::ServiceStateMachine::ThreadGuard)::{lambda(mongo::StatusWith<mongo::Message>)#2}&, mongo::StatusWith<mongo::Message> >(mongo::ServiceStateMachine::_sourceMessage(mongo::ServiceStateMachine::ThreadGuard)::{lambda(mongo::StatusWith<mongo::Message>)#2}&, mongo::StatusWith<mongo::Message>&&)
+               mongo::ServiceStateMachine::_sourceCallback(mongo::Status)
+               mongo::ServiceStateMachine::_scheduleNextWithGuard(mongo::ServiceStateMachine::ThreadGuard, mongo::transport::ServiceExecutor::ScheduleFlags, mongo::transport::ServiceExecutorTaskName, mongo::ServiceStateMachine::Ownership)
+               mongo::transport::ServiceExecutorSynchronous::schedule(std::function<void ()>, mongo::transport::ServiceExecutor::ScheduleFlags, mongo::transport::ServiceExecutorTaskName)
+               std::_Function_handler<void (), mongo::ServiceStateMachine::_scheduleNextWithGuard(mongo::ServiceStateMachine::ThreadGuard, mongo::transport::ServiceExecutor::ScheduleFlags, mongo::transport::ServiceExecutorTaskName, mongo::ServiceStateMachine::Ownership)::{lambda()#1}>::_M_invoke(std::_Any_data const&)
+               mongo::ServiceStateMachine::_runNextInGuard(mongo::ServiceStateMachine::ThreadGuard)
+               mongo::ServiceStateMachine::_processMessage(mongo::ServiceStateMachine::ThreadGuard)
+               mongo::ServiceEntryPointMongod::handleRequest(mongo::OperationContext*, mongo::Message const&)
+               mongo::ServiceEntryPointCommon::handleRequest(mongo::OperationContext*, mongo::Message const&, mongo::ServiceEntryPointCommon::Hooks const&)
+               mongo::(anonymous namespace)::receivedCommands(mongo::OperationContext*, mongo::Message const&, mongo::ServiceEntryPointCommon::Hooks const&)
+               mongo::(anonymous namespace)::execCommandDatabase(mongo::OperationContext*, mongo::Command*, mongo::OpMsgRequest const&, mongo::rpc::ReplyBuilderInterface*, mongo::ServiceEntryPointCommon::Hooks const&)
+               mongo::(anonymous namespace)::runCommandImpl(mongo::OperationContext*, mongo::CommandInvocation*, mongo::OpMsgRequest const&, mongo::rpc::ReplyBuilderInterface*, mongo::LogicalTime, mongo::ServiceEntryPointCommon::Hooks const&, mongo::BSONObjBuilder*, mongo::OperationSessionInfoFromClient const&)
+               mongo::CommandHelpers::runCommandInvocation(mongo::OperationContext*, mongo::OpMsgRequest const&, mongo::CommandInvocation*, mongo::rpc::ReplyBuilderInterface*)
+               mongo::(anonymous namespace)::WriteCommand::InvocationBase::run(mongo::OperationContext*, mongo::rpc::ReplyBuilderInterface*)
+               mongo::(anonymous namespace)::CmdInsert::Invocation::runImpl(mongo::OperationContext*, mongo::BSONObjBuilder&) const
+               mongo::performInserts(mongo::OperationContext*, mongo::write_ops::Insert const&, bool)
+               |          
+               |--2.34%--mongo::(anonymous namespace)::insertDocuments(mongo::OperationContext*, mongo::Collection*, __gnu_cxx::__normal_iterator<mongo::InsertStatement*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, __gnu_cxx::__normal_iterator<mongo::InsertStatement*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, bool)
+               |          mongo::CollectionImpl::insertDocuments(mongo::OperationContext*, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, mongo::OpDebug*, bool)
+               |          |          
+               |          |--1.82%--mongo::OpObserverRegistry::onInserts(mongo::OperationContext*, mongo::NamespaceString const&, boost::optional<mongo::UUID>, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, bool)
+               |          |          mongo::OpObserverImpl::onInserts(mongo::OperationContext*, mongo::NamespaceString const&, boost::optional<mongo::UUID>, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, bool)
+               |          |          mongo::repl::logInsertOps(mongo::OperationContext*, mongo::repl::MutableOplogEntry*, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >)
+               |          |          mongo::repl::_logOpsInner(mongo::OperationContext*, mongo::NamespaceString const&, std::vector<mongo::Record, std::allocator<mongo::Record> >*, std::vector<mongo::Timestamp, std::allocator<mongo::Timestamp> > const&, mongo::Collection*, mongo::repl::OpTime, mongo::Date_t)
+               |          |          mongo::CollectionImpl::insertDocumentsForOplog(mongo::OperationContext*, std::vector<mongo::Record, std::allocator<mongo::Record> >*, std::vector<mongo::Timestamp, std::allocator<mongo::Timestamp> > const&)
+               |          |          mongo::WiredTigerRecordStore::insertRecords(mongo::OperationContext*, std::vector<mongo::Record, std::allocator<mongo::Record> >*, std::vector<mongo::Timestamp, std::allocator<mongo::Timestamp> > const&)
+               |          |          mongo::WiredTigerRecordStore::_insertRecords(mongo::OperationContext*, mongo::Record*, mongo::Timestamp const*, unsigned long)
+               |          |          mongo::WiredTigerRecoveryUnit::setTimestamp(mongo::Timestamp)
+               |          |          __session_timestamp_transaction
+               |          |          __wt_txn_set_timestamp
+               |          |          __wt_config_gets_def
+               |          |          __wt_config_getones
+               |          |          __config_getraw.constprop.1
+               |          |          __config_next
+               |          |          
+               |           --0.52%--mongo::CollectionImpl::_insertDocuments(mongo::OperationContext*, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, mongo::OpDebug*)
+               |                     mongo::WiredTigerRecordStore::insertRecords(mongo::OperationContext*, std::vector<mongo::Record, std::allocator<mongo::Record> >*, std::vector<mongo::Timestamp, std::allocator<mongo::Timestamp> > const&)
+               |                     mongo::WiredTigerRecordStore::_insertRecords(mongo::OperationContext*, mongo::Record*, mongo::Timestamp const*, unsigned long)
+               |                     mongo::WiredTigerRecoveryUnit::setTimestamp(mongo::Timestamp)
+               |                     __session_timestamp_transaction
+               |                     __wt_txn_set_timestamp
+               |                     __wt_config_gets_def
+               |                     __wt_config_getones
+               |                     __config_getraw.constprop.1
+               |                     __config_next
+               |          
+                --1.22%--mongo::(anonymous namespace)::insertBatchAndHandleErrors(mongo::OperationContext*, mongo::write_ops::Insert const&, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> >&, mongo::(anonymous namespace)::LastOpFixer*, mongo::WriteResult*, bool)::{lambda()#3}::operator()() const
+                          mongo::(anonymous namespace)::makeCollection(mongo::OperationContext*, mongo::NamespaceString const&)
+                          mongo::(anonymous namespace)::makeCollection(mongo::OperationContext*, mongo::NamespaceString const&)::{lambda()#3}::operator()() const [clone .isra.840]
+                          mongo::DatabaseImpl::userCreateNS(mongo::OperationContext*, mongo::NamespaceString const&, mongo::CollectionOptions, bool, mongo::BSONObj const&) const
+                          mongo::DatabaseImpl::createCollection(mongo::OperationContext*, mongo::NamespaceString const&, mongo::CollectionOptions const&, bool, mongo::BSONObj const&) const
+                          |          
+                          |--0.70%--mongo::IndexCatalogImpl::createIndexOnEmptyCollection(mongo::OperationContext*, mongo::BSONObj)
+                          |          mongo::IndexBuildBlock::init(mongo::OperationContext*, mongo::Collection*)
+                          |          mongo::IndexCatalogImpl::createIndexEntry(mongo::OperationContext*, std::unique_ptr<mongo::IndexDescriptor, std::default_delete<mongo::IndexDescriptor> >, mongo::CreateIndexEntryFlags)
+                          |          mongo::WiredTigerKVEngine::getGroupedSortedDataInterface(mongo::OperationContext*, mongo::StringData, mongo::IndexDescriptor const*, mongo::KVPrefix)
+                          |          mongo::WiredTigerIndexUnique::WiredTigerIndexUnique(mongo::OperationContext*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, mongo::IndexDescriptor const*, mongo::KVPrefix, bool)
+                          |          mongo::WiredTigerIndex::WiredTigerIndex(mongo::OperationContext*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, mongo::IndexDescriptor const*, mongo::KVPrefix, bool)
+                          |          mongo::WiredTigerIndex::_handleVersionInfo(mongo::OperationContext*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, mongo::IndexDescriptor const*, bool)
+                          |          mongo::WiredTigerUtil::setTableLogging(mongo::OperationContext*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, bool)
+                          |          mongo::WiredTigerUtil::setTableLogging(__wt_session*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, bool)
+                          |          mongo::WiredTigerUtil::getMetadataCreate[abi:cxx11](__wt_session*, mongo::StringData)
+                          |          mongo::(anonymous namespace)::_getMetadata(__wt_cursor*, mongo::StringData)
+                          |          __curmetadata_search
+                          |          __curmetadata_setkv
+                          |          __schema_create_collapse.isra.6
+                          |          __wt_config_collapse
+                          |          __wt_config_get.part.0
+                          |          __config_getraw.constprop.1
+                          |          __config_next
+                          |          
+                           --0.52%--mongo::DurableCatalogImpl::createCollection(mongo::OperationContext*, mongo::NamespaceString const&, mongo::CollectionOptions const&, bool)
+                                     mongo::WiredTigerKVEngine::createGroupedRecordStore(mongo::OperationContext*, mongo::StringData, mongo::StringData, mongo::CollectionOptions const&, mongo::KVPrefix)
+                                     __session_create
+                                     __wt_session_create
+                                     __wt_schema_create
+                                     __create_colgroup
+                                     __wt_schema_create
+                                     __wt_config_collapse
+                                     __wt_config_get.part.0
+                                     __config_getraw.constprop.1
+                                     __config_next
+
+     3.37%             1  TTLMonitor       mongod            [.] __wt_config_getones
+            |
+            ---clone3
+               execute_native_thread_routine
+               std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::BackgroundJob::go()::{lambda()#2}, , 0>(mongo::BackgroundJob::go()::{lambda()#2})::{lambda()#1}> > >::_M_run()
+               mongo::BackgroundJob::jobBody()
+               mongo::TTLMonitor::run()
+               mongo::TTLMonitor::doTTLPass()
+               mongo::TTLMonitor::doTTLForIndex(mongo::OperationContext*, mongo::NamespaceString, mongo::BSONObj)
+               mongo::PlanExecutorImpl::executePlan()
+               mongo::PlanExecutorImpl::getNext(mongo::Document*, mongo::RecordId*)
+               mongo::PlanExecutorImpl::_getNextImpl(mongo::Snapshotted<mongo::Document>*, mongo::RecordId*)
+               mongo::PlanStage::work(unsigned long*)
+               mongo::DeleteStage::doWork(unsigned long*)
+               mongo::PlanStage::restoreState()
+               mongo::RequiresCollectionStageBase<mongo::Collection const*>::doRestoreState()
+               mongo::RequiresIndexStage::doRestoreStateRequiresCollection()
+               mongo::(anonymous namespace)::WiredTigerIndexCursorBase::restore()
+               mongo::WiredTigerRecoveryUnit::getSession()
+               mongo::WiredTigerRecoveryUnit::_txnOpen()
+               mongo::WiredTigerBeginTxnBlock::WiredTigerBeginTxnBlock(__wt_session*, mongo::PrepareConflictBehavior, mongo::WiredTigerBeginTxnBlock::RoundUpPreparedTimestamps, mongo::WiredTigerBeginTxnBlock::RoundUpReadTimestamp)
+               __session_begin_transaction
+               __wt_txn_config
+               __wt_config_gets_def
+               __wt_config_getones
+
+     3.15%             1  conn11           mongod            [.] __wt_session_gen_leave
+            |
+            ---clone3
+               start_thread
+               mongo::(anonymous namespace)::runFunc(void*)
+               std::_Function_handler<void (), mongo::launchServiceWorkerThread(std::function<void ()>)::{lambda()#3}>::_M_invoke(std::_Any_data const&)
+               std::_Function_handler<void (), mongo::transport::ServiceExecutorSynchronous::schedule(std::function<void ()>, mongo::transport::ServiceExecutor::ScheduleFlags, mongo::transport::ServiceExecutorTaskName)::{lambda()#2}>::_M_invoke(std::_Any_data const&)
+               std::_Function_handler<void (), mongo::ServiceStateMachine::_scheduleNextWithGuard(mongo::ServiceStateMachine::ThreadGuard, mongo::transport::ServiceExecutor::ScheduleFlags, mongo::transport::ServiceExecutorTaskName, mongo::ServiceStateMachine::Ownership)::{lambda()#1}>::_M_invoke(std::_Any_data const&)
+               mongo::ServiceStateMachine::_runNextInGuard(mongo::ServiceStateMachine::ThreadGuard)
+               mongo::ServiceStateMachine::_sourceMessage(mongo::ServiceStateMachine::ThreadGuard)
+               auto mongo::future_details::call<mongo::ServiceStateMachine::_sourceMessage(mongo::ServiceStateMachine::ThreadGuard)::{lambda(mongo::StatusWith<mongo::Message>)#2}&, mongo::StatusWith<mongo::Message> >(mongo::ServiceStateMachine::_sourceMessage(mongo::ServiceStateMachine::ThreadGuard)::{lambda(mongo::StatusWith<mongo::Message>)#2}&, mongo::StatusWith<mongo::Message>&&)
+               mongo::ServiceStateMachine::_sourceCallback(mongo::Status)
+               mongo::ServiceStateMachine::_scheduleNextWithGuard(mongo::ServiceStateMachine::ThreadGuard, mongo::transport::ServiceExecutor::ScheduleFlags, mongo::transport::ServiceExecutorTaskName, mongo::ServiceStateMachine::Ownership)
+               mongo::transport::ServiceExecutorSynchronous::schedule(std::function<void ()>, mongo::transport::ServiceExecutor::ScheduleFlags, mongo::transport::ServiceExecutorTaskName)
+               std::_Function_handler<void (), mongo::ServiceStateMachine::_scheduleNextWithGuard(mongo::ServiceStateMachine::ThreadGuard, mongo::transport::ServiceExecutor::ScheduleFlags, mongo::transport::ServiceExecutorTaskName, mongo::ServiceStateMachine::Ownership)::{lambda()#1}>::_M_invoke(std::_Any_data const&)
+               mongo::ServiceStateMachine::_runNextInGuard(mongo::ServiceStateMachine::ThreadGuard)
+               mongo::ServiceStateMachine::_processMessage(mongo::ServiceStateMachine::ThreadGuard)
+               mongo::ServiceEntryPointMongod::handleRequest(mongo::OperationContext*, mongo::Message const&)
+               mongo::ServiceEntryPointCommon::handleRequest(mongo::OperationContext*, mongo::Message const&, mongo::ServiceEntryPointCommon::Hooks const&)
+               mongo::(anonymous namespace)::receivedCommands(mongo::OperationContext*, mongo::Message const&, mongo::ServiceEntryPointCommon::Hooks const&)
+               mongo::(anonymous namespace)::execCommandDatabase(mongo::OperationContext*, mongo::Command*, mongo::OpMsgRequest const&, mongo::rpc::ReplyBuilderInterface*, mongo::ServiceEntryPointCommon::Hooks const&)
+               mongo::(anonymous namespace)::runCommandImpl(mongo::OperationContext*, mongo::CommandInvocation*, mongo::OpMsgRequest const&, mongo::rpc::ReplyBuilderInterface*, mongo::LogicalTime, mongo::ServiceEntryPointCommon::Hooks const&, mongo::BSONObjBuilder*, mongo::OperationSessionInfoFromClient const&)
+               mongo::CommandHelpers::runCommandInvocation(mongo::OperationContext*, mongo::OpMsgRequest const&, mongo::CommandInvocation*, mongo::rpc::ReplyBuilderInterface*)
+               mongo::(anonymous namespace)::WriteCommand::InvocationBase::run(mongo::OperationContext*, mongo::rpc::ReplyBuilderInterface*)
+               mongo::(anonymous namespace)::CmdInsert::Invocation::runImpl(mongo::OperationContext*, mongo::BSONObjBuilder&) const
+               mongo::performInserts(mongo::OperationContext*, mongo::write_ops::Insert const&, bool)
+               mongo::(anonymous namespace)::insertDocuments(mongo::OperationContext*, mongo::Collection*, __gnu_cxx::__normal_iterator<mongo::InsertStatement*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, __gnu_cxx::__normal_iterator<mongo::InsertStatement*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, bool)
+               mongo::CollectionImpl::insertDocuments(mongo::OperationContext*, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, mongo::OpDebug*, bool)
+               mongo::CollectionImpl::_insertDocuments(mongo::OperationContext*, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, mongo::OpDebug*)
+               mongo::WiredTigerRecordStore::insertRecords(mongo::OperationContext*, std::vector<mongo::Record, std::allocator<mongo::Record> >*, std::vector<mongo::Timestamp, std::allocator<mongo::Timestamp> > const&)
+               mongo::WiredTigerRecordStore::_insertRecords(mongo::OperationContext*, mongo::Record*, mongo::Timestamp const*, unsigned long)
+               __curfile_insert
+               __wt_session_gen_leave
+
+     2.39%             1  conn11           mongod            [.] void mongo::BasicBufBuilder<mongo::SharedBufferAllocator>::appendNumImpl<char>(char)
+            |
+            ---clone3
+               start_thread
+               mongo::(anonymous namespace)::runFunc(void*)
+               std::_Function_handler<void (), mongo::launchServiceWorkerThread(std::function<void ()>)::{lambda()#3}>::_M_invoke(std::_Any_data const&)
+               std::_Function_handler<void (), mongo::transport::ServiceExecutorSynchronous::schedule(std::function<void ()>, mongo::transport::ServiceExecutor::ScheduleFlags, mongo::transport::ServiceExecutorTaskName)::{lambda()#2}>::_M_invoke(std::_Any_data const&)
+               std::_Function_handler<void (), mongo::ServiceStateMachine::_scheduleNextWithGuard(mongo::ServiceStateMachine::ThreadGuard, mongo::transport::ServiceExecutor::ScheduleFlags, mongo::transport::ServiceExecutorTaskName, mongo::ServiceStateMachine::Ownership)::{lambda()#1}>::_M_invoke(std::_Any_data const&)
+               mongo::ServiceStateMachine::_runNextInGuard(mongo::ServiceStateMachine::ThreadGuard)
+               mongo::ServiceStateMachine::_sourceMessage(mongo::ServiceStateMachine::ThreadGuard)
+               auto mongo::future_details::call<mongo::ServiceStateMachine::_sourceMessage(mongo::ServiceStateMachine::ThreadGuard)::{lambda(mongo::StatusWith<mongo::Message>)#2}&, mongo::StatusWith<mongo::Message> >(mongo::ServiceStateMachine::_sourceMessage(mongo::ServiceStateMachine::ThreadGuard)::{lambda(mongo::StatusWith<mongo::Message>)#2}&, mongo::StatusWith<mongo::Message>&&)
+               mongo::ServiceStateMachine::_sourceCallback(mongo::Status)
+               mongo::ServiceStateMachine::_scheduleNextWithGuard(mongo::ServiceStateMachine::ThreadGuard, mongo::transport::ServiceExecutor::ScheduleFlags, mongo::transport::ServiceExecutorTaskName, mongo::ServiceStateMachine::Ownership)
+               mongo::transport::ServiceExecutorSynchronous::schedule(std::function<void ()>, mongo::transport::ServiceExecutor::ScheduleFlags, mongo::transport::ServiceExecutorTaskName)
+               std::_Function_handler<void (), mongo::ServiceStateMachine::_scheduleNextWithGuard(mongo::ServiceStateMachine::ThreadGuard, mongo::transport::ServiceExecutor::ScheduleFlags, mongo::transport::ServiceExecutorTaskName, mongo::ServiceStateMachine::Ownership)::{lambda()#1}>::_M_invoke(std::_Any_data const&)
+               mongo::ServiceStateMachine::_runNextInGuard(mongo::ServiceStateMachine::ThreadGuard)
+               mongo::ServiceStateMachine::_processMessage(mongo::ServiceStateMachine::ThreadGuard)
+               mongo::ServiceEntryPointMongod::handleRequest(mongo::OperationContext*, mongo::Message const&)
+               mongo::ServiceEntryPointCommon::handleRequest(mongo::OperationContext*, mongo::Message const&, mongo::ServiceEntryPointCommon::Hooks const&)
+               mongo::(anonymous namespace)::receivedCommands(mongo::OperationContext*, mongo::Message const&, mongo::ServiceEntryPointCommon::Hooks const&)
+               mongo::(anonymous namespace)::execCommandDatabase(mongo::OperationContext*, mongo::Command*, mongo::OpMsgRequest const&, mongo::rpc::ReplyBuilderInterface*, mongo::ServiceEntryPointCommon::Hooks const&)
+               mongo::(anonymous namespace)::runCommandImpl(mongo::OperationContext*, mongo::CommandInvocation*, mongo::OpMsgRequest const&, mongo::rpc::ReplyBuilderInterface*, mongo::LogicalTime, mongo::ServiceEntryPointCommon::Hooks const&, mongo::BSONObjBuilder*, mongo::OperationSessionInfoFromClient const&)
+               mongo::CommandHelpers::runCommandInvocation(mongo::OperationContext*, mongo::OpMsgRequest const&, mongo::CommandInvocation*, mongo::rpc::ReplyBuilderInterface*)
+               mongo::(anonymous namespace)::WriteCommand::InvocationBase::run(mongo::OperationContext*, mongo::rpc::ReplyBuilderInterface*)
+               mongo::(anonymous namespace)::CmdInsert::Invocation::runImpl(mongo::OperationContext*, mongo::BSONObjBuilder&) const
+               mongo::performInserts(mongo::OperationContext*, mongo::write_ops::Insert const&, bool)
+               mongo::(anonymous namespace)::insertDocuments(mongo::OperationContext*, mongo::Collection*, __gnu_cxx::__normal_iterator<mongo::InsertStatement*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, __gnu_cxx::__normal_iterator<mongo::InsertStatement*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, bool)
+               mongo::CollectionImpl::insertDocuments(mongo::OperationContext*, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, mongo::OpDebug*, bool)
+               mongo::OpObserverRegistry::onInserts(mongo::OperationContext*, mongo::NamespaceString const&, boost::optional<mongo::UUID>, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, bool)
+               mongo::OpObserverImpl::onInserts(mongo::OperationContext*, mongo::NamespaceString const&, boost::optional<mongo::UUID>, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, bool)
+               mongo::repl::logInsertOps(mongo::OperationContext*, mongo::repl::MutableOplogEntry*, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >)
+               mongo::repl::OplogEntryBase::toBSON() const
+               mongo::repl::OplogEntryBase::serialize(mongo::BSONObjBuilder*) const
+               void mongo::BasicBufBuilder<mongo::SharedBufferAllocator>::appendNumImpl<char>(char)
+
+     2.19%             1  TTLMonitor       mongod            [.] __wt_row_leaf_key_work
+            |
+            ---clone3
+               execute_native_thread_routine
+               std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::BackgroundJob::go()::{lambda()#2}, , 0>(mongo::BackgroundJob::go()::{lambda()#2})::{lambda()#1}> > >::_M_run()
+               mongo::BackgroundJob::jobBody()
+               mongo::TTLMonitor::run()
+               mongo::TTLMonitor::doTTLPass()
+               mongo::TTLMonitor::doTTLForIndex(mongo::OperationContext*, mongo::NamespaceString, mongo::BSONObj)
+               mongo::PlanExecutorImpl::executePlan()
+               mongo::PlanExecutorImpl::getNext(mongo::Document*, mongo::RecordId*)
+               mongo::PlanExecutorImpl::_getNextImpl(mongo::Snapshotted<mongo::Document>*, mongo::RecordId*)
+               mongo::PlanStage::work(unsigned long*)
+               mongo::DeleteStage::doWork(unsigned long*)
+               mongo::PlanStage::restoreState()
+               mongo::RequiresCollectionStageBase<mongo::Collection const*>::doRestoreState()
+               mongo::RequiresIndexStage::doRestoreStateRequiresCollection()
+               mongo::(anonymous namespace)::WiredTigerIndexCursorBase::restore()
+               mongo::(anonymous namespace)::WiredTigerIndexCursorBase::seekWTCursor(mongo::KeyString::Value const&)
+               int mongo::wiredTigerPrepareConflictRetry<mongo::(anonymous namespace)::WiredTigerIndexCursorBase::seekWTCursor(mongo::KeyString::Value const&)::{lambda()#1}>(mongo::OperationContext*, mongo::(anonymous namespace)::WiredTigerIndexCursorBase::seekWTCursor(mongo::KeyString::Value const&)::{lambda()#1}&&)
+               __curfile_search_near
+               __wt_btcur_search_near
+               __wt_row_leaf_key_work
+
+     1.63%             1  conn11           libc.so.6         [.] __memmove_avx_unaligned_erms
+            |
+            ---clone3
+               start_thread
+               mongo::(anonymous namespace)::runFunc(void*)
+               std::_Function_handler<void (), mongo::launchServiceWorkerThread(std::function<void ()>)::{lambda()#3}>::_M_invoke(std::_Any_data const&)
+               std::_Function_handler<void (), mongo::transport::ServiceExecutorSynchronous::schedule(std::function<void ()>, mongo::transport::ServiceExecutor::ScheduleFlags, mongo::transport::ServiceExecutorTaskName)::{lambda()#2}>::_M_invoke(std::_Any_data const&)
+               std::_Function_handler<void (), mongo::ServiceStateMachine::_scheduleNextWithGuard(mongo::ServiceStateMachine::ThreadGuard, mongo::transport::ServiceExecutor::ScheduleFlags, mongo::transport::ServiceExecutorTaskName, mongo::ServiceStateMachine::Ownership)::{lambda()#1}>::_M_invoke(std::_Any_data const&)
+               mongo::ServiceStateMachine::_runNextInGuard(mongo::ServiceStateMachine::ThreadGuard)
+               mongo::ServiceStateMachine::_sourceMessage(mongo::ServiceStateMachine::ThreadGuard)
+               auto mongo::future_details::call<mongo::ServiceStateMachine::_sourceMessage(mongo::ServiceStateMachine::ThreadGuard)::{lambda(mongo::StatusWith<mongo::Message>)#2}&, mongo::StatusWith<mongo::Message> >(mongo::ServiceStateMachine::_sourceMessage(mongo::ServiceStateMachine::ThreadGuard)::{lambda(mongo::StatusWith<mongo::Message>)#2}&, mongo::StatusWith<mongo::Message>&&)
+               mongo::ServiceStateMachine::_sourceCallback(mongo::Status)
+               mongo::ServiceStateMachine::_scheduleNextWithGuard(mongo::ServiceStateMachine::ThreadGuard, mongo::transport::ServiceExecutor::ScheduleFlags, mongo::transport::ServiceExecutorTaskName, mongo::ServiceStateMachine::Ownership)
+               mongo::transport::ServiceExecutorSynchronous::schedule(std::function<void ()>, mongo::transport::ServiceExecutor::ScheduleFlags, mongo::transport::ServiceExecutorTaskName)
+               std::_Function_handler<void (), mongo::ServiceStateMachine::_scheduleNextWithGuard(mongo::ServiceStateMachine::ThreadGuard, mongo::transport::ServiceExecutor::ScheduleFlags, mongo::transport::ServiceExecutorTaskName, mongo::ServiceStateMachine::Ownership)::{lambda()#1}>::_M_invoke(std::_Any_data const&)
+               mongo::ServiceStateMachine::_runNextInGuard(mongo::ServiceStateMachine::ThreadGuard)
+               mongo::ServiceStateMachine::_processMessage(mongo::ServiceStateMachine::ThreadGuard)
+               mongo::ServiceEntryPointMongod::handleRequest(mongo::OperationContext*, mongo::Message const&)
+               mongo::ServiceEntryPointCommon::handleRequest(mongo::OperationContext*, mongo::Message const&, mongo::ServiceEntryPointCommon::Hooks const&)
+               mongo::(anonymous namespace)::receivedCommands(mongo::OperationContext*, mongo::Message const&, mongo::ServiceEntryPointCommon::Hooks const&)
+               mongo::(anonymous namespace)::execCommandDatabase(mongo::OperationContext*, mongo::Command*, mongo::OpMsgRequest const&, mongo::rpc::ReplyBuilderInterface*, mongo::ServiceEntryPointCommon::Hooks const&)
+               mongo::(anonymous namespace)::runCommandImpl(mongo::OperationContext*, mongo::CommandInvocation*, mongo::OpMsgRequest const&, mongo::rpc::ReplyBuilderInterface*, mongo::LogicalTime, mongo::ServiceEntryPointCommon::Hooks const&, mongo::BSONObjBuilder*, mongo::OperationSessionInfoFromClient const&)
+               mongo::CommandHelpers::runCommandInvocation(mongo::OperationContext*, mongo::OpMsgRequest const&, mongo::CommandInvocation*, mongo::rpc::ReplyBuilderInterface*)
+               mongo::(anonymous namespace)::WriteCommand::InvocationBase::run(mongo::OperationContext*, mongo::rpc::ReplyBuilderInterface*)
+               mongo::(anonymous namespace)::CmdInsert::Invocation::runImpl(mongo::OperationContext*, mongo::BSONObjBuilder&) const
+               mongo::performInserts(mongo::OperationContext*, mongo::write_ops::Insert const&, bool)
+               mongo::(anonymous namespace)::insertDocuments(mongo::OperationContext*, mongo::Collection*, __gnu_cxx::__normal_iterator<mongo::InsertStatement*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, __gnu_cxx::__normal_iterator<mongo::InsertStatement*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, bool)
+               mongo::CollectionImpl::insertDocuments(mongo::OperationContext*, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, mongo::OpDebug*, bool)
+               mongo::OpObserverRegistry::onInserts(mongo::OperationContext*, mongo::NamespaceString const&, boost::optional<mongo::UUID>, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, bool)
+               mongo::OpObserverImpl::onInserts(mongo::OperationContext*, mongo::NamespaceString const&, boost::optional<mongo::UUID>, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, bool)
+               mongo::repl::logInsertOps(mongo::OperationContext*, mongo::repl::MutableOplogEntry*, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >)
+               mongo::repl::_logOpsInner(mongo::OperationContext*, mongo::NamespaceString const&, std::vector<mongo::Record, std::allocator<mongo::Record> >*, std::vector<mongo::Timestamp, std::allocator<mongo::Timestamp> > const&, mongo::Collection*, mongo::repl::OpTime, mongo::Date_t)
+               mongo::CollectionImpl::insertDocumentsForOplog(mongo::OperationContext*, std::vector<mongo::Record, std::allocator<mongo::Record> >*, std::vector<mongo::Timestamp, std::allocator<mongo::Timestamp> > const&)
+               mongo::WiredTigerRecordStore::insertRecords(mongo::OperationContext*, std::vector<mongo::Record, std::allocator<mongo::Record> >*, std::vector<mongo::Timestamp, std::allocator<mongo::Timestamp> > const&)
+               mongo::WiredTigerRecordStore::_insertRecords(mongo::OperationContext*, mongo::Record*, mongo::Timestamp const*, unsigned long)
+               __curfile_insert
+               __wt_btcur_insert
+               __memmove_avx_unaligned_erms
+
+     1.28%             2  conn11           mongod            [.] __wt_row_search
+            |
+            ---clone3
+               start_thread
+               mongo::(anonymous namespace)::runFunc(void*)
+               std::_Function_handler<void (), mongo::launchServiceWorkerThread(std::function<void ()>)::{lambda()#3}>::_M_invoke(std::_Any_data const&)
+               std::_Function_handler<void (), mongo::transport::ServiceExecutorSynchronous::schedule(std::function<void ()>, mongo::transport::ServiceExecutor::ScheduleFlags, mongo::transport::ServiceExecutorTaskName)::{lambda()#2}>::_M_invoke(std::_Any_data const&)
+               std::_Function_handler<void (), mongo::ServiceStateMachine::_scheduleNextWithGuard(mongo::ServiceStateMachine::ThreadGuard, mongo::transport::ServiceExecutor::ScheduleFlags, mongo::transport::ServiceExecutorTaskName, mongo::ServiceStateMachine::Ownership)::{lambda()#1}>::_M_invoke(std::_Any_data const&)
+               mongo::ServiceStateMachine::_runNextInGuard(mongo::ServiceStateMachine::ThreadGuard)
+               mongo::ServiceStateMachine::_sourceMessage(mongo::ServiceStateMachine::ThreadGuard)
+               auto mongo::future_details::call<mongo::ServiceStateMachine::_sourceMessage(mongo::ServiceStateMachine::ThreadGuard)::{lambda(mongo::StatusWith<mongo::Message>)#2}&, mongo::StatusWith<mongo::Message> >(mongo::ServiceStateMachine::_sourceMessage(mongo::ServiceStateMachine::ThreadGuard)::{lambda(mongo::StatusWith<mongo::Message>)#2}&, mongo::StatusWith<mongo::Message>&&)
+               mongo::ServiceStateMachine::_sourceCallback(mongo::Status)
+               mongo::ServiceStateMachine::_scheduleNextWithGuard(mongo::ServiceStateMachine::ThreadGuard, mongo::transport::ServiceExecutor::ScheduleFlags, mongo::transport::ServiceExecutorTaskName, mongo::ServiceStateMachine::Ownership)
+               mongo::transport::ServiceExecutorSynchronous::schedule(std::function<void ()>, mongo::transport::ServiceExecutor::ScheduleFlags, mongo::transport::ServiceExecutorTaskName)
+               std::_Function_handler<void (), mongo::ServiceStateMachine::_scheduleNextWithGuard(mongo::ServiceStateMachine::ThreadGuard, mongo::transport::ServiceExecutor::ScheduleFlags, mongo::transport::ServiceExecutorTaskName, mongo::ServiceStateMachine::Ownership)::{lambda()#1}>::_M_invoke(std::_Any_data const&)
+               mongo::ServiceStateMachine::_runNextInGuard(mongo::ServiceStateMachine::ThreadGuard)
+               mongo::ServiceStateMachine::_processMessage(mongo::ServiceStateMachine::ThreadGuard)
+               mongo::ServiceEntryPointMongod::handleRequest(mongo::OperationContext*, mongo::Message const&)
+               mongo::ServiceEntryPointCommon::handleRequest(mongo::OperationContext*, mongo::Message const&, mongo::ServiceEntryPointCommon::Hooks const&)
+               mongo::(anonymous namespace)::receivedCommands(mongo::OperationContext*, mongo::Message const&, mongo::ServiceEntryPointCommon::Hooks const&)
+               mongo::(anonymous namespace)::execCommandDatabase(mongo::OperationContext*, mongo::Command*, mongo::OpMsgRequest const&, mongo::rpc::ReplyBuilderInterface*, mongo::ServiceEntryPointCommon::Hooks const&)
+               mongo::(anonymous namespace)::runCommandImpl(mongo::OperationContext*, mongo::CommandInvocation*, mongo::OpMsgRequest const&, mongo::rpc::ReplyBuilderInterface*, mongo::LogicalTime, mongo::ServiceEntryPointCommon::Hooks const&, mongo::BSONObjBuilder*, mongo::OperationSessionInfoFromClient const&)
+               mongo::CommandHelpers::runCommandInvocation(mongo::OperationContext*, mongo::OpMsgRequest const&, mongo::CommandInvocation*, mongo::rpc::ReplyBuilderInterface*)
+               mongo::(anonymous namespace)::WriteCommand::InvocationBase::run(mongo::OperationContext*, mongo::rpc::ReplyBuilderInterface*)
+               mongo::(anonymous namespace)::CmdInsert::Invocation::runImpl(mongo::OperationContext*, mongo::BSONObjBuilder&) const
+               mongo::performInserts(mongo::OperationContext*, mongo::write_ops::Insert const&, bool)
+               mongo::(anonymous namespace)::insertDocuments(mongo::OperationContext*, mongo::Collection*, __gnu_cxx::__normal_iterator<mongo::InsertStatement*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, __gnu_cxx::__normal_iterator<mongo::InsertStatement*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, bool)
+               mongo::CollectionImpl::insertDocuments(mongo::OperationContext*, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, mongo::OpDebug*, bool)
+               |          
+               |--0.76%--mongo::OpObserverRegistry::onInserts(mongo::OperationContext*, mongo::NamespaceString const&, boost::optional<mongo::UUID>, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, bool)
+               |          mongo::OpObserverImpl::onInserts(mongo::OperationContext*, mongo::NamespaceString const&, boost::optional<mongo::UUID>, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, bool)
+               |          mongo::repl::logInsertOps(mongo::OperationContext*, mongo::repl::MutableOplogEntry*, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >)
+               |          mongo::repl::_logOpsInner(mongo::OperationContext*, mongo::NamespaceString const&, std::vector<mongo::Record, std::allocator<mongo::Record> >*, std::vector<mongo::Timestamp, std::allocator<mongo::Timestamp> > const&, mongo::Collection*, mongo::repl::OpTime, mongo::Date_t)
+               |          mongo::CollectionImpl::insertDocumentsForOplog(mongo::OperationContext*, std::vector<mongo::Record, std::allocator<mongo::Record> >*, std::vector<mongo::Timestamp, std::allocator<mongo::Timestamp> > const&)
+               |          mongo::WiredTigerRecordStore::insertRecords(mongo::OperationContext*, std::vector<mongo::Record, std::allocator<mongo::Record> >*, std::vector<mongo::Timestamp, std::allocator<mongo::Timestamp> > const&)
+               |          mongo::WiredTigerRecordStore::_insertRecords(mongo::OperationContext*, mongo::Record*, mongo::Timestamp const*, unsigned long)
+               |          __curfile_insert
+               |          __wt_btcur_insert
+               |          __wt_row_search
+               |          
+                --0.52%--mongo::CollectionImpl::_insertDocuments(mongo::OperationContext*, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, mongo::OpDebug*)
+                          mongo::IndexCatalogImpl::indexRecords(mongo::OperationContext*, std::vector<mongo::BsonRecord, std::allocator<mongo::BsonRecord> > const&, long*)
+                          mongo::IndexCatalogImpl::_indexRecords(mongo::OperationContext*, mongo::IndexCatalogEntry*, std::vector<mongo::BsonRecord, std::allocator<mongo::BsonRecord> > const&, long*)
+                          mongo::IndexCatalogImpl::_indexFilteredRecords(mongo::OperationContext*, mongo::IndexCatalogEntry*, std::vector<mongo::BsonRecord, std::allocator<mongo::BsonRecord> > const&, long*)
+                          mongo::IndexCatalogImpl::_indexKeys(mongo::OperationContext*, mongo::IndexCatalogEntry*, std::vector<mongo::KeyString::Value, std::allocator<mongo::KeyString::Value> > const&, std::set<mongo::KeyString::Value, std::less<mongo::KeyString::Value>, std::allocator<mongo::KeyString::Value> > const&, std::vector<std::set<unsigned long, std::less<unsigned long>, std::allocator<unsigned long> >, std::allocator<std::set<unsigned long, std::less<unsigned long>, std::allocator<unsigned long> > > > const&, mongo::BSONObj const&, mongo::RecordId, mongo::InsertDeleteOptions const&, long*)
+                          mongo::AbstractIndexAccessMethod::insertKeys(mongo::OperationContext*, std::vector<mongo::KeyString::Value, std::allocator<mongo::KeyString::Value> > const&, std::vector<mongo::KeyString::Value, std::allocator<mongo::KeyString::Value> > const&, std::vector<std::set<unsigned long, std::less<unsigned long>, std::allocator<unsigned long> >, std::allocator<std::set<unsigned long, std::less<unsigned long>, std::allocator<unsigned long> > > > const&, mongo::RecordId const&, mongo::InsertDeleteOptions const&, mongo::InsertResult*)
+                          mongo::WiredTigerIndex::insert(mongo::OperationContext*, mongo::KeyString::Value const&, bool)
+                          mongo::WiredTigerIndexUnique::_insert(mongo::OperationContext*, __wt_cursor*, mongo::KeyString::Value const&, bool)
+                          mongo::WiredTigerIndexUnique::_insertTimestampUnsafe(mongo::OperationContext*, __wt_cursor*, mongo::KeyString::Value const&, bool)
+                          __curfile_insert
+                          __wt_btcur_insert
+                          __wt_row_search
+
+     1.26%             1  TTLMonitor       mongod            [.] __session_begin_transaction
+            |
+            ---clone3
+               execute_native_thread_routine
+               std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::BackgroundJob::go()::{lambda()#2}, , 0>(mongo::BackgroundJob::go()::{lambda()#2})::{lambda()#1}> > >::_M_run()
+               mongo::BackgroundJob::jobBody()
+               mongo::TTLMonitor::run()
+               mongo::TTLMonitor::doTTLPass()
+               mongo::TTLMonitor::doTTLForIndex(mongo::OperationContext*, mongo::NamespaceString, mongo::BSONObj)
+               mongo::PlanExecutorImpl::executePlan()
+               mongo::PlanExecutorImpl::getNext(mongo::Document*, mongo::RecordId*)
+               mongo::PlanExecutorImpl::_getNextImpl(mongo::Snapshotted<mongo::Document>*, mongo::RecordId*)
+               mongo::PlanStage::work(unsigned long*)
+               mongo::DeleteStage::doWork(unsigned long*)
+               mongo::PlanStage::restoreState()
+               mongo::RequiresCollectionStageBase<mongo::Collection const*>::doRestoreState()
+               mongo::RequiresIndexStage::doRestoreStateRequiresCollection()
+               mongo::(anonymous namespace)::WiredTigerIndexCursorBase::restore()
+               mongo::WiredTigerRecoveryUnit::getSession()
+               mongo::WiredTigerRecoveryUnit::_txnOpen()
+               mongo::WiredTigerBeginTxnBlock::WiredTigerBeginTxnBlock(__wt_session*, mongo::PrepareConflictBehavior, mongo::WiredTigerBeginTxnBlock::RoundUpPreparedTimestamps, mongo::WiredTigerBeginTxnBlock::RoundUpReadTimestamp)
+               __session_begin_transaction
+
+     1.20%             1  ftdc             libc.so.6         [.] __memmove_avx_unaligned_erms
+            |
+            ---clone3
+               execute_native_thread_routine
+               std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::FTDCController::start()::{lambda()#2}, , 0>(mongo::FTDCController::start()::{lambda()#2})::{lambda()#1}> > >::_M_run()
+               mongo::FTDCController::doLoop()
+               mongo::FTDCCollectorCollection::collect(mongo::Client*)
+               mongo::(anonymous namespace)::LinuxSystemMetricsCollector::collect(mongo::OperationContext*, mongo::BSONObjBuilder&)
+               mongo::procparser::parseProcMemInfoFile(mongo::StringData, std::vector<mongo::StringData, std::allocator<mongo::StringData> > const&, mongo::BSONObjBuilder*)
+               mongo::(anonymous namespace)::readFileAsString(mongo::StringData)
+               __memmove_avx_unaligned_erms
+
+     1.03%             1  ftdc             libc.so.6         [.] __memcmp_avx2_movbe
+            |
+            ---clone3
+               execute_native_thread_routine
+               std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::FTDCController::start()::{lambda()#2}, , 0>(mongo::FTDCController::start()::{lambda()#2})::{lambda()#1}> > >::_M_run()
+               mongo::FTDCController::doLoop()
+               mongo::FTDCFileManager::writeSampleAndRotateIfNeeded(mongo::Client*, mongo::BSONObj const&, mongo::Date_t)
+               mongo::FTDCFileWriter::writeSample(mongo::BSONObj const&, mongo::Date_t)
+               mongo::FTDCCompressor::addSample(mongo::BSONObj const&, mongo::Date_t)
+               mongo::FTDCBSONUtil::extractMetricsFromDocument(mongo::BSONObj const&, mongo::BSONObj const&, std::vector<unsigned long, std::allocator<unsigned long> >*)
+               mongo::FTDCBSONUtil::(anonymous namespace)::extractMetricsFromDocument(mongo::BSONObj const&, mongo::BSONObj const&, std::vector<unsigned long, std::allocator<unsigned long> >*, bool, unsigned long)
+               mongo::FTDCBSONUtil::(anonymous namespace)::extractMetricsFromDocument(mongo::BSONObj const&, mongo::BSONObj const&, std::vector<unsigned long, std::allocator<unsigned long> >*, bool, unsigned long)
+               mongo::FTDCBSONUtil::(anonymous namespace)::extractMetricsFromDocument(mongo::BSONObj const&, mongo::BSONObj const&, std::vector<unsigned long, std::allocator<unsigned long> >*, bool, unsigned long)
+               __memcmp_avx2_movbe
+
+     0.93%             1  conn11           mongod            [.] mongo::WiredTigerSession::getCachedCursor(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, unsigned long, char const*)
+            |
+            ---clone3
+               start_thread
+               mongo::(anonymous namespace)::runFunc(void*)
+               std::_Function_handler<void (), mongo::launchServiceWorkerThread(std::function<void ()>)::{lambda()#3}>::_M_invoke(std::_Any_data const&)
+               std::_Function_handler<void (), mongo::transport::ServiceExecutorSynchronous::schedule(std::function<void ()>, mongo::transport::ServiceExecutor::ScheduleFlags, mongo::transport::ServiceExecutorTaskName)::{lambda()#2}>::_M_invoke(std::_Any_data const&)
+               std::_Function_handler<void (), mongo::ServiceStateMachine::_scheduleNextWithGuard(mongo::ServiceStateMachine::ThreadGuard, mongo::transport::ServiceExecutor::ScheduleFlags, mongo::transport::ServiceExecutorTaskName, mongo::ServiceStateMachine::Ownership)::{lambda()#1}>::_M_invoke(std::_Any_data const&)
+               mongo::ServiceStateMachine::_runNextInGuard(mongo::ServiceStateMachine::ThreadGuard)
+               mongo::ServiceStateMachine::_sourceMessage(mongo::ServiceStateMachine::ThreadGuard)
+               auto mongo::future_details::call<mongo::ServiceStateMachine::_sourceMessage(mongo::ServiceStateMachine::ThreadGuard)::{lambda(mongo::StatusWith<mongo::Message>)#2}&, mongo::StatusWith<mongo::Message> >(mongo::ServiceStateMachine::_sourceMessage(mongo::ServiceStateMachine::ThreadGuard)::{lambda(mongo::StatusWith<mongo::Message>)#2}&, mongo::StatusWith<mongo::Message>&&)
+               mongo::ServiceStateMachine::_sourceCallback(mongo::Status)
+               mongo::ServiceStateMachine::_scheduleNextWithGuard(mongo::ServiceStateMachine::ThreadGuard, mongo::transport::ServiceExecutor::ScheduleFlags, mongo::transport::ServiceExecutorTaskName, mongo::ServiceStateMachine::Ownership)
+               mongo::transport::ServiceExecutorSynchronous::schedule(std::function<void ()>, mongo::transport::ServiceExecutor::ScheduleFlags, mongo::transport::ServiceExecutorTaskName)
+               std::_Function_handler<void (), mongo::ServiceStateMachine::_scheduleNextWithGuard(mongo::ServiceStateMachine::ThreadGuard, mongo::transport::ServiceExecutor::ScheduleFlags, mongo::transport::ServiceExecutorTaskName, mongo::ServiceStateMachine::Ownership)::{lambda()#1}>::_M_invoke(std::_Any_data const&)
+               mongo::ServiceStateMachine::_runNextInGuard(mongo::ServiceStateMachine::ThreadGuard)
+               mongo::ServiceStateMachine::_processMessage(mongo::ServiceStateMachine::ThreadGuard)
+               mongo::ServiceEntryPointMongod::handleRequest(mongo::OperationContext*, mongo::Message const&)
+               mongo::ServiceEntryPointCommon::handleRequest(mongo::OperationContext*, mongo::Message const&, mongo::ServiceEntryPointCommon::Hooks const&)
+               mongo::(anonymous namespace)::receivedCommands(mongo::OperationContext*, mongo::Message const&, mongo::ServiceEntryPointCommon::Hooks const&)
+               mongo::(anonymous namespace)::execCommandDatabase(mongo::OperationContext*, mongo::Command*, mongo::OpMsgRequest const&, mongo::rpc::ReplyBuilderInterface*, mongo::ServiceEntryPointCommon::Hooks const&)
+               mongo::(anonymous namespace)::runCommandImpl(mongo::OperationContext*, mongo::CommandInvocation*, mongo::OpMsgRequest const&, mongo::rpc::ReplyBuilderInterface*, mongo::LogicalTime, mongo::ServiceEntryPointCommon::Hooks const&, mongo::BSONObjBuilder*, mongo::OperationSessionInfoFromClient const&)
+               mongo::CommandHelpers::runCommandInvocation(mongo::OperationContext*, mongo::OpMsgRequest const&, mongo::CommandInvocation*, mongo::rpc::ReplyBuilderInterface*)
+               mongo::(anonymous namespace)::WriteCommand::InvocationBase::run(mongo::OperationContext*, mongo::rpc::ReplyBuilderInterface*)
+               mongo::(anonymous namespace)::CmdInsert::Invocation::runImpl(mongo::OperationContext*, mongo::BSONObjBuilder&) const
+               mongo::performInserts(mongo::OperationContext*, mongo::write_ops::Insert const&, bool)
+               mongo::(anonymous namespace)::insertDocuments(mongo::OperationContext*, mongo::Collection*, __gnu_cxx::__normal_iterator<mongo::InsertStatement*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, __gnu_cxx::__normal_iterator<mongo::InsertStatement*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, bool)
+               mongo::CollectionImpl::insertDocuments(mongo::OperationContext*, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, mongo::OpDebug*, bool)
+               mongo::CollectionImpl::_insertDocuments(mongo::OperationContext*, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, mongo::OpDebug*)
+               mongo::IndexCatalogImpl::indexRecords(mongo::OperationContext*, std::vector<mongo::BsonRecord, std::allocator<mongo::BsonRecord> > const&, long*)
+               mongo::IndexCatalogImpl::_indexRecords(mongo::OperationContext*, mongo::IndexCatalogEntry*, std::vector<mongo::BsonRecord, std::allocator<mongo::BsonRecord> > const&, long*)
+               mongo::IndexCatalogImpl::_indexFilteredRecords(mongo::OperationContext*, mongo::IndexCatalogEntry*, std::vector<mongo::BsonRecord, std::allocator<mongo::BsonRecord> > const&, long*)
+               mongo::IndexCatalogImpl::_indexKeys(mongo::OperationContext*, mongo::IndexCatalogEntry*, std::vector<mongo::KeyString::Value, std::allocator<mongo::KeyString::Value> > const&, std::set<mongo::KeyString::Value, std::less<mongo::KeyString::Value>, std::allocator<mongo::KeyString::Value> > const&, std::vector<std::set<unsigned long, std::less<unsigned long>, std::allocator<unsigned long> >, std::allocator<std::set<unsigned long, std::less<unsigned long>, std::allocator<unsigned long> > > > const&, mongo::BSONObj const&, mongo::RecordId, mongo::InsertDeleteOptions const&, long*)
+               mongo::AbstractIndexAccessMethod::insertKeys(mongo::OperationContext*, std::vector<mongo::KeyString::Value, std::allocator<mongo::KeyString::Value> > const&, std::vector<mongo::KeyString::Value, std::allocator<mongo::KeyString::Value> > const&, std::vector<std::set<unsigned long, std::less<unsigned long>, std::allocator<unsigned long> >, std::allocator<std::set<unsigned long, std::less<unsigned long>, std::allocator<unsigned long> > > > const&, mongo::RecordId const&, mongo::InsertDeleteOptions const&, mongo::InsertResult*)
+               mongo::WiredTigerIndex::insert(mongo::OperationContext*, mongo::KeyString::Value const&, bool)
+               mongo::WiredTigerCursor::WiredTigerCursor(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, unsigned long, bool, mongo::OperationContext*)
+               mongo::WiredTigerSession::getCachedCursor(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, unsigned long, char const*)
+
+     0.92%             1  TTLMonitor       mongod            [.] mongo::PlanStage::work(unsigned long*)
+            |
+            ---clone3
+               execute_native_thread_routine
+               std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::BackgroundJob::go()::{lambda()#2}, , 0>(mongo::BackgroundJob::go()::{lambda()#2})::{lambda()#1}> > >::_M_run()
+               mongo::BackgroundJob::jobBody()
+               mongo::TTLMonitor::run()
+               mongo::TTLMonitor::doTTLPass()
+               mongo::TTLMonitor::doTTLForIndex(mongo::OperationContext*, mongo::NamespaceString, mongo::BSONObj)
+               mongo::PlanExecutorImpl::executePlan()
+               mongo::PlanExecutorImpl::getNext(mongo::Document*, mongo::RecordId*)
+               mongo::PlanExecutorImpl::_getNextImpl(mongo::Snapshotted<mongo::Document>*, mongo::RecordId*)
+               mongo::PlanStage::work(unsigned long*)
+
+     0.90%             1  conn11           mongod            [.] mongo::WiredTigerRecordStore::_insertRecords(mongo::OperationContext*, mongo::Record*, mongo::Timestamp const*, unsigned long)
+            |
+            ---clone3
+               start_thread
+               mongo::(anonymous namespace)::runFunc(void*)
+               std::_Function_handler<void (), mongo::launchServiceWorkerThread(std::function<void ()>)::{lambda()#3}>::_M_invoke(std::_Any_data const&)
+               std::_Function_handler<void (), mongo::transport::ServiceExecutorSynchronous::schedule(std::function<void ()>, mongo::transport::ServiceExecutor::ScheduleFlags, mongo::transport::ServiceExecutorTaskName)::{lambda()#2}>::_M_invoke(std::_Any_data const&)
+               std::_Function_handler<void (), mongo::ServiceStateMachine::_scheduleNextWithGuard(mongo::ServiceStateMachine::ThreadGuard, mongo::transport::ServiceExecutor::ScheduleFlags, mongo::transport::ServiceExecutorTaskName, mongo::ServiceStateMachine::Ownership)::{lambda()#1}>::_M_invoke(std::_Any_data const&)
+               mongo::ServiceStateMachine::_runNextInGuard(mongo::ServiceStateMachine::ThreadGuard)
+               mongo::ServiceStateMachine::_sourceMessage(mongo::ServiceStateMachine::ThreadGuard)
+               auto mongo::future_details::call<mongo::ServiceStateMachine::_sourceMessage(mongo::ServiceStateMachine::ThreadGuard)::{lambda(mongo::StatusWith<mongo::Message>)#2}&, mongo::StatusWith<mongo::Message> >(mongo::ServiceStateMachine::_sourceMessage(mongo::ServiceStateMachine::ThreadGuard)::{lambda(mongo::StatusWith<mongo::Message>)#2}&, mongo::StatusWith<mongo::Message>&&)
+               mongo::ServiceStateMachine::_sourceCallback(mongo::Status)
+               mongo::ServiceStateMachine::_scheduleNextWithGuard(mongo::ServiceStateMachine::ThreadGuard, mongo::transport::ServiceExecutor::ScheduleFlags, mongo::transport::ServiceExecutorTaskName, mongo::ServiceStateMachine::Ownership)
+               mongo::transport::ServiceExecutorSynchronous::schedule(std::function<void ()>, mongo::transport::ServiceExecutor::ScheduleFlags, mongo::transport::ServiceExecutorTaskName)
+               std::_Function_handler<void (), mongo::ServiceStateMachine::_scheduleNextWithGuard(mongo::ServiceStateMachine::ThreadGuard, mongo::transport::ServiceExecutor::ScheduleFlags, mongo::transport::ServiceExecutorTaskName, mongo::ServiceStateMachine::Ownership)::{lambda()#1}>::_M_invoke(std::_Any_data const&)
+               mongo::ServiceStateMachine::_runNextInGuard(mongo::ServiceStateMachine::ThreadGuard)
+               mongo::ServiceStateMachine::_processMessage(mongo::ServiceStateMachine::ThreadGuard)
+               mongo::ServiceEntryPointMongod::handleRequest(mongo::OperationContext*, mongo::Message const&)
+               mongo::ServiceEntryPointCommon::handleRequest(mongo::OperationContext*, mongo::Message const&, mongo::ServiceEntryPointCommon::Hooks const&)
+               mongo::(anonymous namespace)::receivedCommands(mongo::OperationContext*, mongo::Message const&, mongo::ServiceEntryPointCommon::Hooks const&)
+               mongo::(anonymous namespace)::execCommandDatabase(mongo::OperationContext*, mongo::Command*, mongo::OpMsgRequest const&, mongo::rpc::ReplyBuilderInterface*, mongo::ServiceEntryPointCommon::Hooks const&)
+               mongo::(anonymous namespace)::runCommandImpl(mongo::OperationContext*, mongo::CommandInvocation*, mongo::OpMsgRequest const&, mongo::rpc::ReplyBuilderInterface*, mongo::LogicalTime, mongo::ServiceEntryPointCommon::Hooks const&, mongo::BSONObjBuilder*, mongo::OperationSessionInfoFromClient const&)
+               mongo::CommandHelpers::runCommandInvocation(mongo::OperationContext*, mongo::OpMsgRequest const&, mongo::CommandInvocation*, mongo::rpc::ReplyBuilderInterface*)
+               mongo::(anonymous namespace)::WriteCommand::InvocationBase::run(mongo::OperationContext*, mongo::rpc::ReplyBuilderInterface*)
+               mongo::(anonymous namespace)::CmdInsert::Invocation::runImpl(mongo::OperationContext*, mongo::BSONObjBuilder&) const
+               mongo::performInserts(mongo::OperationContext*, mongo::write_ops::Insert const&, bool)
+               mongo::(anonymous namespace)::insertDocuments(mongo::OperationContext*, mongo::Collection*, __gnu_cxx::__normal_iterator<mongo::InsertStatement*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, __gnu_cxx::__normal_iterator<mongo::InsertStatement*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, bool)
+               mongo::CollectionImpl::insertDocuments(mongo::OperationContext*, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, mongo::OpDebug*, bool)
+               mongo::CollectionImpl::_insertDocuments(mongo::OperationContext*, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, mongo::OpDebug*)
+               mongo::WiredTigerRecordStore::insertRecords(mongo::OperationContext*, std::vector<mongo::Record, std::allocator<mongo::Record> >*, std::vector<mongo::Timestamp, std::allocator<mongo::Timestamp> > const&)
+               mongo::WiredTigerRecoveryUnit::setTimestamp(mongo::Timestamp)
+
+     0.89%             1  IndexBu.ongod-1  mongod            [.] __wt_bulk_insert_row
+            |
+            ---clone3
+               execute_native_thread_routine
+               std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::ThreadPool::_startWorkerThread_inlock()::{lambda()#4}, , 0>(mongo::ThreadPool::_startWorkerThread_inlock()::{lambda()#4})::{lambda()#1}> > >::_M_run()
+               mongo::ThreadPool::_workerThreadBody(mongo::ThreadPool*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)
+               mongo::ThreadPool::_consumeTasks()
+               mongo::ThreadPool::_doOneTask(std::unique_lock<mongo::latch_detail::Latch>*)
+               mongo::unique_function<void (mongo::Status)>::makeImpl<mongo::IndexBuildsCoordinatorMongod::startIndexBuild(mongo::OperationContext*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, mongo::UUID, std::vector<mongo::BSONObj, std::allocator<mongo::BSONObj> > const&, mongo::UUID const&, mongo::IndexBuildProtocol, mongo::IndexBuildsCoordinator::IndexBuildOptions)::{lambda(auto:1)#5}>(mongo::IndexBuildsCoordinatorMongod::startIndexBuild(mongo::OperationContext*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, mongo::UUID, std::vector<mongo::BSONObj, std::allocator<mongo::BSONObj> > const&, mongo::UUID const&, mongo::IndexBuildProtocol, mongo::IndexBuildsCoordinator::IndexBuildOptions)::{lambda(auto:1)#5}&&)::SpecificImpl::call(mongo::Status&&)
+               auto mongo::IndexBuildsCoordinatorMongod::startIndexBuild(mongo::OperationContext*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, mongo::UUID, std::vector<mongo::BSONObj, std::allocator<mongo::BSONObj> > const&, mongo::UUID const&, mongo::IndexBuildProtocol, mongo::IndexBuildsCoordinator::IndexBuildOptions)::{lambda(auto:1)#5}::operator()<mongo::Status>(mongo::Status)
+               mongo::IndexBuildsCoordinator::_runIndexBuild(mongo::OperationContext*, mongo::UUID const&, mongo::IndexBuildsCoordinator::IndexBuildOptions const&)
+               mongo::IndexBuildsCoordinator::_runIndexBuildInner(mongo::OperationContext*, std::shared_ptr<mongo::ReplIndexBuildState>, mongo::IndexBuildsCoordinator::IndexBuildOptions const&)
+               mongo::IndexBuildsCoordinator::_buildIndex(mongo::OperationContext*, std::shared_ptr<mongo::ReplIndexBuildState>, mongo::IndexBuildsCoordinator::IndexBuildOptions const&)
+               mongo::IndexBuildsCoordinator::_scanCollectionAndInsertKeysIntoSorter(mongo::OperationContext*, std::shared_ptr<mongo::ReplIndexBuildState>)
+               mongo::IndexBuildsManager::startBuildingIndex(mongo::OperationContext*, mongo::Collection*, mongo::UUID const&)
+               mongo::MultiIndexBlock::insertAllDocumentsInCollection(mongo::OperationContext*, mongo::Collection*)
+               mongo::MultiIndexBlock::dumpInsertsFromBulk(mongo::OperationContext*, std::set<mongo::RecordId, std::less<mongo::RecordId>, std::allocator<mongo::RecordId> >*)
+               mongo::AbstractIndexAccessMethod::commitBulk(mongo::OperationContext*, mongo::IndexAccessMethod::BulkBuilder*, bool, std::set<mongo::RecordId, std::less<mongo::RecordId>, std::allocator<mongo::RecordId> >*, std::vector<mongo::BSONObj, std::allocator<mongo::BSONObj> >*)
+               mongo::WiredTigerIndex::StandardBulkBuilder::addKey(mongo::KeyString::Value const&)
+               __curbulk_insert_row
+               __rec_cell_build_leaf_key
+
+     0.89%             1  IndexBu.ongod-1  mongod            [.] mongo::StringData::compare(mongo::StringData) const
+            |
+            ---clone3
+               execute_native_thread_routine
+               std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::ThreadPool::_startWorkerThread_inlock()::{lambda()#4}, , 0>(mongo::ThreadPool::_startWorkerThread_inlock()::{lambda()#4})::{lambda()#1}> > >::_M_run()
+               mongo::ThreadPool::_workerThreadBody(mongo::ThreadPool*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)
+               mongo::ThreadPool::_consumeTasks()
+               mongo::ThreadPool::_doOneTask(std::unique_lock<mongo::latch_detail::Latch>*)
+               mongo::unique_function<void (mongo::Status)>::makeImpl<mongo::IndexBuildsCoordinatorMongod::startIndexBuild(mongo::OperationContext*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, mongo::UUID, std::vector<mongo::BSONObj, std::allocator<mongo::BSONObj> > const&, mongo::UUID const&, mongo::IndexBuildProtocol, mongo::IndexBuildsCoordinator::IndexBuildOptions)::{lambda(auto:1)#5}>(mongo::IndexBuildsCoordinatorMongod::startIndexBuild(mongo::OperationContext*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, mongo::UUID, std::vector<mongo::BSONObj, std::allocator<mongo::BSONObj> > const&, mongo::UUID const&, mongo::IndexBuildProtocol, mongo::IndexBuildsCoordinator::IndexBuildOptions)::{lambda(auto:1)#5}&&)::SpecificImpl::call(mongo::Status&&)
+               auto mongo::IndexBuildsCoordinatorMongod::startIndexBuild(mongo::OperationContext*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, mongo::UUID, std::vector<mongo::BSONObj, std::allocator<mongo::BSONObj> > const&, mongo::UUID const&, mongo::IndexBuildProtocol, mongo::IndexBuildsCoordinator::IndexBuildOptions)::{lambda(auto:1)#5}::operator()<mongo::Status>(mongo::Status)
+               mongo::IndexBuildsCoordinator::_runIndexBuild(mongo::OperationContext*, mongo::UUID const&, mongo::IndexBuildsCoordinator::IndexBuildOptions const&)
+               mongo::IndexBuildsCoordinator::_runIndexBuildInner(mongo::OperationContext*, std::shared_ptr<mongo::ReplIndexBuildState>, mongo::IndexBuildsCoordinator::IndexBuildOptions const&)
+               mongo::IndexBuildsCoordinator::_buildIndex(mongo::OperationContext*, std::shared_ptr<mongo::ReplIndexBuildState>, mongo::IndexBuildsCoordinator::IndexBuildOptions const&)
+               mongo::IndexBuildsCoordinator::_scanCollectionAndInsertKeysIntoSorter(mongo::OperationContext*, std::shared_ptr<mongo::ReplIndexBuildState>)
+               mongo::IndexBuildsManager::startBuildingIndex(mongo::OperationContext*, mongo::Collection*, mongo::UUID const&)
+               mongo::MultiIndexBlock::insertAllDocumentsInCollection(mongo::OperationContext*, mongo::Collection*)
+               mongo::MultiIndexBlock::insert(mongo::OperationContext*, mongo::BSONObj const&, mongo::RecordId const&)
+               mongo::AbstractIndexAccessMethod::BulkBuilderImpl::insert(mongo::OperationContext*, mongo::BSONObj const&, mongo::RecordId const&, mongo::InsertDeleteOptions const&)
+               mongo::AbstractIndexAccessMethod::getKeys(mongo::BSONObj const&, mongo::IndexAccessMethod::GetKeysMode, mongo::IndexAccessMethod::GetKeysContext, std::set<mongo::KeyString::Value, std::less<mongo::KeyString::Value>, std::allocator<mongo::KeyString::Value> >*, std::set<mongo::KeyString::Value, std::less<mongo::KeyString::Value>, std::allocator<mongo::KeyString::Value> >*, std::vector<std::set<unsigned long, std::less<unsigned long>, std::allocator<unsigned long> >, std::allocator<std::set<unsigned long, std::less<unsigned long>, std::allocator<unsigned long> > > >*, boost::optional<mongo::RecordId>, std::function<void (mongo::Status, mongo::BSONObj const&, boost::optional<mongo::RecordId>)>) const
+               mongo::BtreeAccessMethod::doGetKeys(mongo::BSONObj const&, mongo::IndexAccessMethod::GetKeysContext, std::set<mongo::KeyString::Value, std::less<mongo::KeyString::Value>, std::allocator<mongo::KeyString::Value> >*, std::set<mongo::KeyString::Value, std::less<mongo::KeyString::Value>, std::allocator<mongo::KeyString::Value> >*, std::vector<std::set<unsigned long, std::less<unsigned long>, std::allocator<unsigned long> >, std::allocator<std::set<unsigned long, std::less<unsigned long>, std::allocator<unsigned long> > > >*, boost::optional<mongo::RecordId>) const
+               mongo::BtreeKeyGenerator::getKeys(mongo::BSONObj const&, bool, std::set<mongo::KeyString::Value, std::less<mongo::KeyString::Value>, std::allocator<mongo::KeyString::Value> >*, std::vector<std::set<unsigned long, std::less<unsigned long>, std::allocator<unsigned long> >, std::allocator<std::set<unsigned long, std::less<unsigned long>, std::allocator<unsigned long> > > >*, boost::optional<mongo::RecordId>) const
+               mongo::BtreeKeyGenerator::_getKeysWithArray(std::vector<char const*, std::allocator<char const*> >, std::vector<mongo::BSONElement, std::allocator<mongo::BSONElement> >, mongo::BSONObj const&, std::set<mongo::KeyString::Value, std::less<mongo::KeyString::Value>, std::allocator<mongo::KeyString::Value> >*, unsigned int, std::vector<mongo::BtreeKeyGenerator::PositionalPathInfo, std::allocator<mongo::BtreeKeyGenerator::PositionalPathInfo> > const&, std::vector<std::set<unsigned long, std::less<unsigned long>, std::allocator<unsigned long> >, std::allocator<std::set<unsigned long, std::less<unsigned long>, std::allocator<unsigned long> > > >*, boost::optional<mongo::RecordId>) const
+               mongo::BtreeKeyGenerator::_extractNextElement(mongo::BSONObj const&, mongo::BtreeKeyGenerator::PositionalPathInfo const&, char const**, bool*) const
+               mongo::dotted_path_support::extractElementAtPathOrArrayAlongPath(mongo::BSONObj const&, char const*&)
+               mongo::BSONObj::getField(mongo::StringData) const
+               mongo::StringData::compare(mongo::StringData) const
+
+     0.88%             1  conn11           mongod            [.] mongo::KeyString::TypeBits::resetFromBuffer(mongo::BufReader*)
+            |
+            ---clone3
+               start_thread
+               mongo::(anonymous namespace)::runFunc(void*)
+               std::_Function_handler<void (), mongo::launchServiceWorkerThread(std::function<void ()>)::{lambda()#3}>::_M_invoke(std::_Any_data const&)
+               std::_Function_handler<void (), mongo::transport::ServiceExecutorSynchronous::schedule(std::function<void ()>, mongo::transport::ServiceExecutor::ScheduleFlags, mongo::transport::ServiceExecutorTaskName)::{lambda()#2}>::_M_invoke(std::_Any_data const&)
+               std::_Function_handler<void (), mongo::ServiceStateMachine::_scheduleNextWithGuard(mongo::ServiceStateMachine::ThreadGuard, mongo::transport::ServiceExecutor::ScheduleFlags, mongo::transport::ServiceExecutorTaskName, mongo::ServiceStateMachine::Ownership)::{lambda()#1}>::_M_invoke(std::_Any_data const&)
+               mongo::ServiceStateMachine::_runNextInGuard(mongo::ServiceStateMachine::ThreadGuard)
+               mongo::ServiceStateMachine::_sourceMessage(mongo::ServiceStateMachine::ThreadGuard)
+               auto mongo::future_details::call<mongo::ServiceStateMachine::_sourceMessage(mongo::ServiceStateMachine::ThreadGuard)::{lambda(mongo::StatusWith<mongo::Message>)#2}&, mongo::StatusWith<mongo::Message> >(mongo::ServiceStateMachine::_sourceMessage(mongo::ServiceStateMachine::ThreadGuard)::{lambda(mongo::StatusWith<mongo::Message>)#2}&, mongo::StatusWith<mongo::Message>&&)
+               mongo::ServiceStateMachine::_sourceCallback(mongo::Status)
+               mongo::ServiceStateMachine::_scheduleNextWithGuard(mongo::ServiceStateMachine::ThreadGuard, mongo::transport::ServiceExecutor::ScheduleFlags, mongo::transport::ServiceExecutorTaskName, mongo::ServiceStateMachine::Ownership)
+               mongo::transport::ServiceExecutorSynchronous::schedule(std::function<void ()>, mongo::transport::ServiceExecutor::ScheduleFlags, mongo::transport::ServiceExecutorTaskName)
+               std::_Function_handler<void (), mongo::ServiceStateMachine::_scheduleNextWithGuard(mongo::ServiceStateMachine::ThreadGuard, mongo::transport::ServiceExecutor::ScheduleFlags, mongo::transport::ServiceExecutorTaskName, mongo::ServiceStateMachine::Ownership)::{lambda()#1}>::_M_invoke(std::_Any_data const&)
+               mongo::ServiceStateMachine::_runNextInGuard(mongo::ServiceStateMachine::ThreadGuard)
+               mongo::ServiceStateMachine::_processMessage(mongo::ServiceStateMachine::ThreadGuard)
+               mongo::ServiceEntryPointMongod::handleRequest(mongo::OperationContext*, mongo::Message const&)
+               mongo::ServiceEntryPointCommon::handleRequest(mongo::OperationContext*, mongo::Message const&, mongo::ServiceEntryPointCommon::Hooks const&)
+               mongo::(anonymous namespace)::receivedCommands(mongo::OperationContext*, mongo::Message const&, mongo::ServiceEntryPointCommon::Hooks const&)
+               mongo::(anonymous namespace)::execCommandDatabase(mongo::OperationContext*, mongo::Command*, mongo::OpMsgRequest const&, mongo::rpc::ReplyBuilderInterface*, mongo::ServiceEntryPointCommon::Hooks const&)
+               mongo::(anonymous namespace)::runCommandImpl(mongo::OperationContext*, mongo::CommandInvocation*, mongo::OpMsgRequest const&, mongo::rpc::ReplyBuilderInterface*, mongo::LogicalTime, mongo::ServiceEntryPointCommon::Hooks const&, mongo::BSONObjBuilder*, mongo::OperationSessionInfoFromClient const&)
+               mongo::CommandHelpers::runCommandInvocation(mongo::OperationContext*, mongo::OpMsgRequest const&, mongo::CommandInvocation*, mongo::rpc::ReplyBuilderInterface*)
+               mongo::(anonymous namespace)::WriteCommand::InvocationBase::run(mongo::OperationContext*, mongo::rpc::ReplyBuilderInterface*)
+               mongo::(anonymous namespace)::CmdInsert::Invocation::runImpl(mongo::OperationContext*, mongo::BSONObjBuilder&) const
+               mongo::performInserts(mongo::OperationContext*, mongo::write_ops::Insert const&, bool)
+               mongo::(anonymous namespace)::insertDocuments(mongo::OperationContext*, mongo::Collection*, __gnu_cxx::__normal_iterator<mongo::InsertStatement*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, __gnu_cxx::__normal_iterator<mongo::InsertStatement*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, bool)
+               mongo::CollectionImpl::insertDocuments(mongo::OperationContext*, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, mongo::OpDebug*, bool)
+               mongo::CollectionImpl::_insertDocuments(mongo::OperationContext*, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, mongo::OpDebug*)
+               mongo::IndexCatalogImpl::indexRecords(mongo::OperationContext*, std::vector<mongo::BsonRecord, std::allocator<mongo::BsonRecord> > const&, long*)
+               mongo::IndexCatalogImpl::_indexRecords(mongo::OperationContext*, mongo::IndexCatalogEntry*, std::vector<mongo::BsonRecord, std::allocator<mongo::BsonRecord> > const&, long*)
+               mongo::IndexCatalogImpl::_indexFilteredRecords(mongo::OperationContext*, mongo::IndexCatalogEntry*, std::vector<mongo::BsonRecord, std::allocator<mongo::BsonRecord> > const&, long*)
+               mongo::IndexCatalogImpl::_indexKeys(mongo::OperationContext*, mongo::IndexCatalogEntry*, std::vector<mongo::KeyString::Value, std::allocator<mongo::KeyString::Value> > const&, std::set<mongo::KeyString::Value, std::less<mongo::KeyString::Value>, std::allocator<mongo::KeyString::Value> > const&, std::vector<std::set<unsigned long, std::less<unsigned long>, std::allocator<unsigned long> >, std::allocator<std::set<unsigned long, std::less<unsigned long>, std::allocator<unsigned long> > > > const&, mongo::BSONObj const&, mongo::RecordId, mongo::InsertDeleteOptions const&, long*)
+               mongo::AbstractIndexAccessMethod::insertKeys(mongo::OperationContext*, std::vector<mongo::KeyString::Value, std::allocator<mongo::KeyString::Value> > const&, std::vector<mongo::KeyString::Value, std::allocator<mongo::KeyString::Value> > const&, std::vector<std::set<unsigned long, std::less<unsigned long>, std::allocator<unsigned long> >, std::allocator<std::set<unsigned long, std::less<unsigned long>, std::allocator<unsigned long> > > > const&, mongo::RecordId const&, mongo::InsertDeleteOptions const&, mongo::InsertResult*)
+               mongo::WiredTigerIndex::insert(mongo::OperationContext*, mongo::KeyString::Value const&, bool)
+               mongo::WiredTigerIndexUnique::_insert(mongo::OperationContext*, __wt_cursor*, mongo::KeyString::Value const&, bool)
+               mongo::WiredTigerIndexUnique::_insertTimestampUnsafe(mongo::OperationContext*, __wt_cursor*, mongo::KeyString::Value const&, bool)
+               mongo::KeyString::Value::getTypeBits() const
+               mongo::KeyString::TypeBits::resetFromBuffer(mongo::BufReader*)
+
+     0.86%             1  IndexBu.ongod-1  mongod            [.] mongo::PlanExecutorImpl::_getNextImpl(mongo::Snapshotted<mongo::Document>*, mongo::RecordId*)
+            |
+            ---clone3
+               execute_native_thread_routine
+               std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::ThreadPool::_startWorkerThread_inlock()::{lambda()#4}, , 0>(mongo::ThreadPool::_startWorkerThread_inlock()::{lambda()#4})::{lambda()#1}> > >::_M_run()
+               mongo::ThreadPool::_workerThreadBody(mongo::ThreadPool*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)
+               mongo::ThreadPool::_consumeTasks()
+               mongo::ThreadPool::_doOneTask(std::unique_lock<mongo::latch_detail::Latch>*)
+               mongo::unique_function<void (mongo::Status)>::makeImpl<mongo::IndexBuildsCoordinatorMongod::startIndexBuild(mongo::OperationContext*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, mongo::UUID, std::vector<mongo::BSONObj, std::allocator<mongo::BSONObj> > const&, mongo::UUID const&, mongo::IndexBuildProtocol, mongo::IndexBuildsCoordinator::IndexBuildOptions)::{lambda(auto:1)#5}>(mongo::IndexBuildsCoordinatorMongod::startIndexBuild(mongo::OperationContext*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, mongo::UUID, std::vector<mongo::BSONObj, std::allocator<mongo::BSONObj> > const&, mongo::UUID const&, mongo::IndexBuildProtocol, mongo::IndexBuildsCoordinator::IndexBuildOptions)::{lambda(auto:1)#5}&&)::SpecificImpl::call(mongo::Status&&)
+               auto mongo::IndexBuildsCoordinatorMongod::startIndexBuild(mongo::OperationContext*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, mongo::UUID, std::vector<mongo::BSONObj, std::allocator<mongo::BSONObj> > const&, mongo::UUID const&, mongo::IndexBuildProtocol, mongo::IndexBuildsCoordinator::IndexBuildOptions)::{lambda(auto:1)#5}::operator()<mongo::Status>(mongo::Status)
+               mongo::IndexBuildsCoordinator::_runIndexBuild(mongo::OperationContext*, mongo::UUID const&, mongo::IndexBuildsCoordinator::IndexBuildOptions const&)
+               mongo::IndexBuildsCoordinator::_runIndexBuildInner(mongo::OperationContext*, std::shared_ptr<mongo::ReplIndexBuildState>, mongo::IndexBuildsCoordinator::IndexBuildOptions const&)
+               mongo::IndexBuildsCoordinator::_buildIndex(mongo::OperationContext*, std::shared_ptr<mongo::ReplIndexBuildState>, mongo::IndexBuildsCoordinator::IndexBuildOptions const&)
+               mongo::IndexBuildsCoordinator::_scanCollectionAndInsertKeysIntoSorter(mongo::OperationContext*, std::shared_ptr<mongo::ReplIndexBuildState>)
+               mongo::IndexBuildsManager::startBuildingIndex(mongo::OperationContext*, mongo::Collection*, mongo::UUID const&)
+               mongo::MultiIndexBlock::insertAllDocumentsInCollection(mongo::OperationContext*, mongo::Collection*)
+               mongo::PlanExecutorImpl::getNextSnapshotted(mongo::Snapshotted<mongo::BSONObj>*, mongo::RecordId*)
+               mongo::PlanYieldPolicy::shouldYieldOrInterrupt()
+
+     0.85%             1  conn11           mongod            [.] __curfile_insert
+            |
+            ---clone3
+               start_thread
+               mongo::(anonymous namespace)::runFunc(void*)
+               std::_Function_handler<void (), mongo::launchServiceWorkerThread(std::function<void ()>)::{lambda()#3}>::_M_invoke(std::_Any_data const&)
+               std::_Function_handler<void (), mongo::transport::ServiceExecutorSynchronous::schedule(std::function<void ()>, mongo::transport::ServiceExecutor::ScheduleFlags, mongo::transport::ServiceExecutorTaskName)::{lambda()#2}>::_M_invoke(std::_Any_data const&)
+               std::_Function_handler<void (), mongo::ServiceStateMachine::_scheduleNextWithGuard(mongo::ServiceStateMachine::ThreadGuard, mongo::transport::ServiceExecutor::ScheduleFlags, mongo::transport::ServiceExecutorTaskName, mongo::ServiceStateMachine::Ownership)::{lambda()#1}>::_M_invoke(std::_Any_data const&)
+               mongo::ServiceStateMachine::_runNextInGuard(mongo::ServiceStateMachine::ThreadGuard)
+               mongo::ServiceStateMachine::_sourceMessage(mongo::ServiceStateMachine::ThreadGuard)
+               auto mongo::future_details::call<mongo::ServiceStateMachine::_sourceMessage(mongo::ServiceStateMachine::ThreadGuard)::{lambda(mongo::StatusWith<mongo::Message>)#2}&, mongo::StatusWith<mongo::Message> >(mongo::ServiceStateMachine::_sourceMessage(mongo::ServiceStateMachine::ThreadGuard)::{lambda(mongo::StatusWith<mongo::Message>)#2}&, mongo::StatusWith<mongo::Message>&&)
+               mongo::ServiceStateMachine::_sourceCallback(mongo::Status)
+               mongo::ServiceStateMachine::_scheduleNextWithGuard(mongo::ServiceStateMachine::ThreadGuard, mongo::transport::ServiceExecutor::ScheduleFlags, mongo::transport::ServiceExecutorTaskName, mongo::ServiceStateMachine::Ownership)
+               mongo::transport::ServiceExecutorSynchronous::schedule(std::function<void ()>, mongo::transport::ServiceExecutor::ScheduleFlags, mongo::transport::ServiceExecutorTaskName)
+               std::_Function_handler<void (), mongo::ServiceStateMachine::_scheduleNextWithGuard(mongo::ServiceStateMachine::ThreadGuard, mongo::transport::ServiceExecutor::ScheduleFlags, mongo::transport::ServiceExecutorTaskName, mongo::ServiceStateMachine::Ownership)::{lambda()#1}>::_M_invoke(std::_Any_data const&)
+               mongo::ServiceStateMachine::_runNextInGuard(mongo::ServiceStateMachine::ThreadGuard)
+               mongo::ServiceStateMachine::_processMessage(mongo::ServiceStateMachine::ThreadGuard)
+               mongo::ServiceEntryPointMongod::handleRequest(mongo::OperationContext*, mongo::Message const&)
+               mongo::ServiceEntryPointCommon::handleRequest(mongo::OperationContext*, mongo::Message const&, mongo::ServiceEntryPointCommon::Hooks const&)
+               mongo::(anonymous namespace)::receivedCommands(mongo::OperationContext*, mongo::Message const&, mongo::ServiceEntryPointCommon::Hooks const&)
+               mongo::(anonymous namespace)::execCommandDatabase(mongo::OperationContext*, mongo::Command*, mongo::OpMsgRequest const&, mongo::rpc::ReplyBuilderInterface*, mongo::ServiceEntryPointCommon::Hooks const&)
+               mongo::(anonymous namespace)::runCommandImpl(mongo::OperationContext*, mongo::CommandInvocation*, mongo::OpMsgRequest const&, mongo::rpc::ReplyBuilderInterface*, mongo::LogicalTime, mongo::ServiceEntryPointCommon::Hooks const&, mongo::BSONObjBuilder*, mongo::OperationSessionInfoFromClient const&)
+               mongo::CommandHelpers::runCommandInvocation(mongo::OperationContext*, mongo::OpMsgRequest const&, mongo::CommandInvocation*, mongo::rpc::ReplyBuilderInterface*)
+               mongo::(anonymous namespace)::WriteCommand::InvocationBase::run(mongo::OperationContext*, mongo::rpc::ReplyBuilderInterface*)
+               mongo::(anonymous namespace)::CmdInsert::Invocation::runImpl(mongo::OperationContext*, mongo::BSONObjBuilder&) const
+               mongo::performInserts(mongo::OperationContext*, mongo::write_ops::Insert const&, bool)
+               mongo::(anonymous namespace)::insertDocuments(mongo::OperationContext*, mongo::Collection*, __gnu_cxx::__normal_iterator<mongo::InsertStatement*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, __gnu_cxx::__normal_iterator<mongo::InsertStatement*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, bool)
+               mongo::CollectionImpl::insertDocuments(mongo::OperationContext*, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, mongo::OpDebug*, bool)
+               mongo::OpObserverRegistry::onInserts(mongo::OperationContext*, mongo::NamespaceString const&, boost::optional<mongo::UUID>, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, bool)
+               mongo::OpObserverImpl::onInserts(mongo::OperationContext*, mongo::NamespaceString const&, boost::optional<mongo::UUID>, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, bool)
+               mongo::repl::logInsertOps(mongo::OperationContext*, mongo::repl::MutableOplogEntry*, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >)
+               mongo::repl::_logOpsInner(mongo::OperationContext*, mongo::NamespaceString const&, std::vector<mongo::Record, std::allocator<mongo::Record> >*, std::vector<mongo::Timestamp, std::allocator<mongo::Timestamp> > const&, mongo::Collection*, mongo::repl::OpTime, mongo::Date_t)
+               mongo::CollectionImpl::insertDocumentsForOplog(mongo::OperationContext*, std::vector<mongo::Record, std::allocator<mongo::Record> >*, std::vector<mongo::Timestamp, std::allocator<mongo::Timestamp> > const&)
+               mongo::WiredTigerRecordStore::insertRecords(mongo::OperationContext*, std::vector<mongo::Record, std::allocator<mongo::Record> >*, std::vector<mongo::Timestamp, std::allocator<mongo::Timestamp> > const&)
+               mongo::WiredTigerRecordStore::_insertRecords(mongo::OperationContext*, mongo::Record*, mongo::Timestamp const*, unsigned long)
+               __curfile_insert
+
+     0.84%             1  ftdc             [unknown]         [k] 0xffffffff9bc10602
+            |
+            ---clone3
+               execute_native_thread_routine
+               std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::FTDCController::start()::{lambda()#2}, , 0>(mongo::FTDCController::start()::{lambda()#2})::{lambda()#1}> > >::_M_run()
+               mongo::FTDCController::doLoop()
+               mongo::FTDCCollectorCollection::collect(mongo::Client*)
+               mongo::(anonymous namespace)::LinuxSystemMetricsCollector::collect(mongo::OperationContext*, mongo::BSONObjBuilder&)
+               mongo::procparser::parseProcNetstatFile(std::vector<mongo::StringData, std::allocator<mongo::StringData> > const&, mongo::StringData, mongo::BSONObjBuilder*)
+               mongo::(anonymous namespace)::readFileAsString(mongo::StringData)
+               __GI___libc_open
+               0xffffffff9b40012b
+               0xffffffff9c992650
+               0xffffffff9b68b8de
+               0xffffffff9bbe2d44
+               0xffffffff9bbe2768
+               0xffffffff9bc007b3
+               0xffffffff9bc0049b
+               0xffffffff9bbff29d
+               0xffffffff9bbfb35f
+               0xffffffff9bcca06e
+               0xffffffff9bcbef93
+               0xffffffff9bcb6464
+               0xffffffff9bc13d33
+               0xffffffff9bc13c7b
+               0xffffffff9bc1060a
+
+     0.83%             1  IndexBu.ongod-1  mongod            [.] mongo::KeyString::BuilderBase<mongo::BasicBufBuilder<mongo::SharedBufferAllocator> >::_transition(mongo::KeyString::BuildState)
+            |
+            ---clone3
+               execute_native_thread_routine
+               std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::ThreadPool::_startWorkerThread_inlock()::{lambda()#4}, , 0>(mongo::ThreadPool::_startWorkerThread_inlock()::{lambda()#4})::{lambda()#1}> > >::_M_run()
+               mongo::ThreadPool::_workerThreadBody(mongo::ThreadPool*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)
+               mongo::ThreadPool::_consumeTasks()
+               mongo::ThreadPool::_doOneTask(std::unique_lock<mongo::latch_detail::Latch>*)
+               mongo::unique_function<void (mongo::Status)>::makeImpl<mongo::IndexBuildsCoordinatorMongod::startIndexBuild(mongo::OperationContext*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, mongo::UUID, std::vector<mongo::BSONObj, std::allocator<mongo::BSONObj> > const&, mongo::UUID const&, mongo::IndexBuildProtocol, mongo::IndexBuildsCoordinator::IndexBuildOptions)::{lambda(auto:1)#5}>(mongo::IndexBuildsCoordinatorMongod::startIndexBuild(mongo::OperationContext*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, mongo::UUID, std::vector<mongo::BSONObj, std::allocator<mongo::BSONObj> > const&, mongo::UUID const&, mongo::IndexBuildProtocol, mongo::IndexBuildsCoordinator::IndexBuildOptions)::{lambda(auto:1)#5}&&)::SpecificImpl::call(mongo::Status&&)
+               auto mongo::IndexBuildsCoordinatorMongod::startIndexBuild(mongo::OperationContext*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, mongo::UUID, std::vector<mongo::BSONObj, std::allocator<mongo::BSONObj> > const&, mongo::UUID const&, mongo::IndexBuildProtocol, mongo::IndexBuildsCoordinator::IndexBuildOptions)::{lambda(auto:1)#5}::operator()<mongo::Status>(mongo::Status)
+               mongo::IndexBuildsCoordinator::_runIndexBuild(mongo::OperationContext*, mongo::UUID const&, mongo::IndexBuildsCoordinator::IndexBuildOptions const&)
+               mongo::IndexBuildsCoordinator::_runIndexBuildInner(mongo::OperationContext*, std::shared_ptr<mongo::ReplIndexBuildState>, mongo::IndexBuildsCoordinator::IndexBuildOptions const&)
+               mongo::IndexBuildsCoordinator::_buildIndex(mongo::OperationContext*, std::shared_ptr<mongo::ReplIndexBuildState>, mongo::IndexBuildsCoordinator::IndexBuildOptions const&)
+               mongo::IndexBuildsCoordinator::_scanCollectionAndInsertKeysIntoSorter(mongo::OperationContext*, std::shared_ptr<mongo::ReplIndexBuildState>)
+               mongo::IndexBuildsManager::startBuildingIndex(mongo::OperationContext*, mongo::Collection*, mongo::UUID const&)
+               mongo::MultiIndexBlock::insertAllDocumentsInCollection(mongo::OperationContext*, mongo::Collection*)
+               mongo::MultiIndexBlock::insert(mongo::OperationContext*, mongo::BSONObj const&, mongo::RecordId const&)
+               mongo::AbstractIndexAccessMethod::BulkBuilderImpl::insert(mongo::OperationContext*, mongo::BSONObj const&, mongo::RecordId const&, mongo::InsertDeleteOptions const&)
+               mongo::AbstractIndexAccessMethod::getKeys(mongo::BSONObj const&, mongo::IndexAccessMethod::GetKeysMode, mongo::IndexAccessMethod::GetKeysContext, std::set<mongo::KeyString::Value, std::less<mongo::KeyString::Value>, std::allocator<mongo::KeyString::Value> >*, std::set<mongo::KeyString::Value, std::less<mongo::KeyString::Value>, std::allocator<mongo::KeyString::Value> >*, std::vector<std::set<unsigned long, std::less<unsigned long>, std::allocator<unsigned long> >, std::allocator<std::set<unsigned long, std::less<unsigned long>, std::allocator<unsigned long> > > >*, boost::optional<mongo::RecordId>, std::function<void (mongo::Status, mongo::BSONObj const&, boost::optional<mongo::RecordId>)>) const
+               mongo::BtreeAccessMethod::doGetKeys(mongo::BSONObj const&, mongo::IndexAccessMethod::GetKeysContext, std::set<mongo::KeyString::Value, std::less<mongo::KeyString::Value>, std::allocator<mongo::KeyString::Value> >*, std::set<mongo::KeyString::Value, std::less<mongo::KeyString::Value>, std::allocator<mongo::KeyString::Value> >*, std::vector<std::set<unsigned long, std::less<unsigned long>, std::allocator<unsigned long> >, std::allocator<std::set<unsigned long, std::less<unsigned long>, std::allocator<unsigned long> > > >*, boost::optional<mongo::RecordId>) const
+               mongo::BtreeKeyGenerator::getKeys(mongo::BSONObj const&, bool, std::set<mongo::KeyString::Value, std::less<mongo::KeyString::Value>, std::allocator<mongo::KeyString::Value> >*, std::vector<std::set<unsigned long, std::less<unsigned long>, std::allocator<unsigned long> >, std::allocator<std::set<unsigned long, std::less<unsigned long>, std::allocator<unsigned long> > > >*, boost::optional<mongo::RecordId>) const
+               mongo::BtreeKeyGenerator::_getKeysWithArray(std::vector<char const*, std::allocator<char const*> >, std::vector<mongo::BSONElement, std::allocator<mongo::BSONElement> >, mongo::BSONObj const&, std::set<mongo::KeyString::Value, std::less<mongo::KeyString::Value>, std::allocator<mongo::KeyString::Value> >*, unsigned int, std::vector<mongo::BtreeKeyGenerator::PositionalPathInfo, std::allocator<mongo::BtreeKeyGenerator::PositionalPathInfo> > const&, std::vector<std::set<unsigned long, std::less<unsigned long>, std::allocator<unsigned long> >, std::allocator<std::set<unsigned long, std::less<unsigned long>, std::allocator<unsigned long> > > >*, boost::optional<mongo::RecordId>) const
+               mongo::KeyString::BuilderBase<mongo::BasicBufBuilder<mongo::SharedBufferAllocator> >::appendRecordId(mongo::RecordId)
+               mongo::KeyString::BuilderBase<mongo::BasicBufBuilder<mongo::SharedBufferAllocator> >::_transition(mongo::KeyString::BuildState)
+
+     0.80%             1  TTLMonitor       [unknown]         [k] 0xffffffff9b7f098a
+            |
+            ---clone3
+               execute_native_thread_routine
+               std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::BackgroundJob::go()::{lambda()#2}, , 0>(mongo::BackgroundJob::go()::{lambda()#2})::{lambda()#1}> > >::_M_run()
+               mongo::BackgroundJob::jobBody()
+               mongo::TTLMonitor::run()
+               mongo::TTLMonitor::doTTLPass()
+               mongo::TTLMonitor::doTTLForIndex(mongo::OperationContext*, mongo::NamespaceString, mongo::BSONObj)
+               mongo::PlanExecutorImpl::executePlan()
+               mongo::PlanExecutorImpl::getNext(mongo::Document*, mongo::RecordId*)
+               mongo::PlanExecutorImpl::_getNextImpl(mongo::Snapshotted<mongo::Document>*, mongo::RecordId*)
+               mongo::PlanStage::work(unsigned long*)
+               mongo::DeleteStage::doWork(unsigned long*)
+               mongo::CollectionImpl::deleteDocument(mongo::OperationContext*, int, mongo::RecordId, mongo::OpDebug*, bool, bool, mongo::Collection::StoreDeletedDoc)
+               mongo::OpObserverRegistry::onDelete(mongo::OperationContext*, mongo::NamespaceString const&, boost::optional<mongo::UUID>, int, bool, boost::optional<mongo::BSONObj> const&)
+               mongo::OpObserverImpl::onDelete(mongo::OperationContext*, mongo::NamespaceString const&, boost::optional<mongo::UUID>, int, bool, boost::optional<mongo::BSONObj> const&)
+               mongo::(anonymous namespace)::logOperation(mongo::OperationContext*, mongo::repl::MutableOplogEntry*)
+               mongo::repl::logOp(mongo::OperationContext*, mongo::repl::MutableOplogEntry*)
+               mongo::repl::_logOpsInner(mongo::OperationContext*, mongo::NamespaceString const&, std::vector<mongo::Record, std::allocator<mongo::Record> >*, std::vector<mongo::Timestamp, std::allocator<mongo::Timestamp> > const&, mongo::Collection*, mongo::repl::OpTime, mongo::Date_t)
+               mongo::CollectionImpl::insertDocumentsForOplog(mongo::OperationContext*, std::vector<mongo::Record, std::allocator<mongo::Record> >*, std::vector<mongo::Timestamp, std::allocator<mongo::Timestamp> > const&)
+               mongo::WiredTigerRecordStore::insertRecords(mongo::OperationContext*, std::vector<mongo::Record, std::allocator<mongo::Record> >*, std::vector<mongo::Timestamp, std::allocator<mongo::Timestamp> > const&)
+               mongo::WiredTigerRecordStore::_insertRecords(mongo::OperationContext*, mongo::Record*, mongo::Timestamp const*, unsigned long)
+               mongo::oploghack::extractKey(char const*, int)
+               mongo::BSONObj::getField(mongo::StringData) const
+               mongo::BSONObjIterator::next() [clone .isra.30]
+               0xffffffff9b400f0b
+               0xffffffff9c9993a7
+               0xffffffff9b72d0f6
+               0xffffffff9b8a99ad
+               0xffffffff9b8a89be
+               0xffffffff9b8c1e87
+               0xffffffff9b8a79b4
+               0xffffffff9b7e262d
+               0xffffffff9b7f0991
+
+     0.78%             1  WTJourn.Flusher  mongod            [.] mongo::UpdateObjectNode::parseAndMerge(mongo::UpdateObjectNode*, mongo::modifiertable::ModifierType, mongo::BSONElement, boost::intrusive_ptr<mongo::ExpressionContext> const&, std::map<mongo::StringData, std::unique_ptr<mongo::ExpressionWithPlaceholder, std::default_delete<mongo::ExpressionWithPlaceholder> >, std::less<mongo::StringData>, std::allocator<std::pair<mongo::StringData const, std::unique_ptr<mongo::ExpressionWithPlaceholder, std::default_delete<mongo::ExpressionWithPlaceholder> > > > > const&, std::set<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::less<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&)
+            |
+            ---clone3
+               execute_native_thread_routine
+               std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::BackgroundJob::go()::{lambda()#2}, , 0>(mongo::BackgroundJob::go()::{lambda()#2})::{lambda()#1}> > >::_M_run()
+               mongo::BackgroundJob::jobBody()
+               mongo::WiredTigerKVEngine::WiredTigerJournalFlusher::run()
+               mongo::WiredTigerSessionCache::waitUntilDurable(mongo::OperationContext*, mongo::WiredTigerSessionCache::Fsync, mongo::WiredTigerSessionCache::UseJournalListener)
+               mongo::repl::ReplicationCoordinatorExternalStateImpl::getToken(mongo::OperationContext*)
+               mongo::repl::ReplicationConsistencyMarkersImpl::refreshOplogTruncateAfterPointIfPrimary(mongo::OperationContext*)
+               mongo::repl::ReplicationConsistencyMarkersImpl::setOplogTruncateAfterPoint(mongo::OperationContext*, mongo::Timestamp const&)
+               mongo::repl::ReplicationConsistencyMarkersImpl::_upsertOplogTruncateAfterPointDocument(mongo::OperationContext*, mongo::BSONObj const&)
+               mongo::repl::StorageInterfaceImpl::upsertById(mongo::OperationContext*, mongo::NamespaceStringOrUUID const&, mongo::BSONElement const&, mongo::BSONObj const&)
+               mongo::repl::StorageInterfaceImpl::upsertById(mongo::OperationContext*, mongo::NamespaceStringOrUUID const&, mongo::BSONElement const&, mongo::BSONObj const&)::{lambda()#1}::operator()() const
+               mongo::ParsedUpdate::parseRequest()
+               mongo::ParsedUpdate::parseUpdate()
+               mongo::UpdateDriver::parse(mongo::write_ops::UpdateModification const&, std::map<mongo::StringData, std::unique_ptr<mongo::ExpressionWithPlaceholder, std::default_delete<mongo::ExpressionWithPlaceholder> >, std::less<mongo::StringData>, std::allocator<std::pair<mongo::StringData const, std::unique_ptr<mongo::ExpressionWithPlaceholder, std::default_delete<mongo::ExpressionWithPlaceholder> > > > > const&, boost::optional<mongo::BSONObj>, bool)
+               mongo::SetNode::init(mongo::BSONElement, boost::intrusive_ptr<mongo::ExpressionContext> const&)
+
+     0.66%             1  TTLMonitor       mongod            [.] std::pair<std::_Rb_tree_iterator<mongo::repl::OpTimeAndWallTime>, bool> std::_Rb_tree<mongo::repl::OpTimeAndWallTime, mongo::repl::OpTimeAndWallTime, std::_Identity<mongo::repl::OpTimeAndWallTime>, std::less<mongo::repl::OpTimeAndWallTime>, std::allocator<mongo::repl::OpTimeAndWallTime> >::_M_insert_unique<mongo::repl::OpTimeAndWallTime const&>(mongo::repl::OpTimeAndWallTime const&)
+            |
+            ---clone3
+               execute_native_thread_routine
+               std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::BackgroundJob::go()::{lambda()#2}, , 0>(mongo::BackgroundJob::go()::{lambda()#2})::{lambda()#1}> > >::_M_run()
+               mongo::BackgroundJob::jobBody()
+               mongo::TTLMonitor::run()
+               mongo::TTLMonitor::doTTLPass()
+               mongo::TTLMonitor::doTTLForIndex(mongo::OperationContext*, mongo::NamespaceString, mongo::BSONObj)
+               mongo::PlanExecutorImpl::executePlan()
+               mongo::PlanExecutorImpl::getNext(mongo::Document*, mongo::RecordId*)
+               mongo::PlanExecutorImpl::_getNextImpl(mongo::Snapshotted<mongo::Document>*, mongo::RecordId*)
+               mongo::PlanStage::work(unsigned long*)
+               mongo::DeleteStage::doWork(unsigned long*)
+               mongo::WriteUnitOfWork::commit()
+               mongo::WiredTigerRecoveryUnit::doCommitUnitOfWork()
+               mongo::WiredTigerRecoveryUnit::_commit()
+               mongo::RecoveryUnit::commitRegisteredChanges(boost::optional<mongo::Timestamp>)
+               mongo::RecoveryUnit::onCommit<mongo::repl::_logOpsInner(mongo::OperationContext*, mongo::NamespaceString const&, std::vector<mongo::Record, std::allocator<mongo::Record> >*, std::vector<mongo::Timestamp, std::allocator<mongo::Timestamp> > const&, mongo::Collection*, mongo::repl::OpTime, mongo::Date_t)::{lambda(boost::optional<mongo::Timestamp>)#3}>(mongo::repl::_logOpsInner(mongo::OperationContext*, mongo::NamespaceString const&, std::vector<mongo::Record, std::allocator<mongo::Record> >*, std::vector<mongo::Timestamp, std::allocator<mongo::Timestamp> > const&, mongo::Collection*, mongo::repl::OpTime, mongo::Date_t)::{lambda(boost::optional<mongo::Timestamp>)#3})::OnCommitChange::commit(boost::optional<mongo::Timestamp>)
+               mongo::repl::ReplicationCoordinatorImpl::setMyLastAppliedOpTimeAndWallTimeForward(mongo::repl::OpTimeAndWallTime const&, mongo::repl::ReplicationCoordinator::DataConsistency)
+               mongo::repl::ReplicationCoordinatorImpl::_setMyLastAppliedOpTimeAndWallTime(mongo::WithLock, mongo::repl::OpTimeAndWallTime const&, bool, mongo::repl::ReplicationCoordinator::DataConsistency)
+               std::pair<std::_Rb_tree_iterator<mongo::repl::OpTimeAndWallTime>, bool> std::_Rb_tree<mongo::repl::OpTimeAndWallTime, mongo::repl::OpTimeAndWallTime, std::_Identity<mongo::repl::OpTimeAndWallTime>, std::less<mongo::repl::OpTimeAndWallTime>, std::allocator<mongo::repl::OpTimeAndWallTime> >::_M_insert_unique<mongo::repl::OpTimeAndWallTime const&>(mongo::repl::OpTimeAndWallTime const&)
+
+     0.65%             1  WTJourn.Flusher  mongod            [.] mongo::Document::toBson() const
+            |
+            ---clone3
+               execute_native_thread_routine
+               std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::BackgroundJob::go()::{lambda()#2}, , 0>(mongo::BackgroundJob::go()::{lambda()#2})::{lambda()#1}> > >::_M_run()
+               mongo::BackgroundJob::jobBody()
+               mongo::WiredTigerKVEngine::WiredTigerJournalFlusher::run()
+               mongo::WiredTigerSessionCache::waitUntilDurable(mongo::OperationContext*, mongo::WiredTigerSessionCache::Fsync, mongo::WiredTigerSessionCache::UseJournalListener)
+               mongo::repl::ReplicationCoordinatorExternalStateImpl::getToken(mongo::OperationContext*)
+               mongo::repl::ReplicationConsistencyMarkersImpl::refreshOplogTruncateAfterPointIfPrimary(mongo::OperationContext*)
+               mongo::repl::ReplicationConsistencyMarkersImpl::setOplogTruncateAfterPoint(mongo::OperationContext*, mongo::Timestamp const&)
+               mongo::repl::ReplicationConsistencyMarkersImpl::_upsertOplogTruncateAfterPointDocument(mongo::OperationContext*, mongo::BSONObj const&)
+               mongo::repl::StorageInterfaceImpl::upsertById(mongo::OperationContext*, mongo::NamespaceStringOrUUID const&, mongo::BSONElement const&, mongo::BSONObj const&)
+               mongo::repl::StorageInterfaceImpl::upsertById(mongo::OperationContext*, mongo::NamespaceStringOrUUID const&, mongo::BSONElement const&, mongo::BSONObj const&)::{lambda()#1}::operator()() const
+               mongo::PlanExecutorImpl::executePlan()
+               mongo::PlanExecutorImpl::getNext(mongo::Document*, mongo::RecordId*)
+               mongo::PlanExecutorImpl::_getNextImpl(mongo::Snapshotted<mongo::Document>*, mongo::RecordId*)
+               mongo::PlanStage::work(unsigned long*)
+               mongo::UpsertStage::doWork(unsigned long*)
+               mongo::Document::toBson() const
+
+     0.62%             1  TTLMonitor       mongod            [.] __wt_txn_upd_value_visible_all
+            |
+            ---clone3
+               execute_native_thread_routine
+               std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::BackgroundJob::go()::{lambda()#2}, , 0>(mongo::BackgroundJob::go()::{lambda()#2})::{lambda()#1}> > >::_M_run()
+               mongo::BackgroundJob::jobBody()
+               mongo::TTLMonitor::run()
+               mongo::TTLMonitor::doTTLPass()
+               mongo::TTLMonitor::doTTLForIndex(mongo::OperationContext*, mongo::NamespaceString, mongo::BSONObj)
+               mongo::PlanExecutorImpl::executePlan()
+               mongo::PlanExecutorImpl::getNext(mongo::Document*, mongo::RecordId*)
+               mongo::PlanExecutorImpl::_getNextImpl(mongo::Snapshotted<mongo::Document>*, mongo::RecordId*)
+               mongo::PlanStage::work(unsigned long*)
+               mongo::DeleteStage::doWork(unsigned long*)
+               mongo::PlanStage::work(unsigned long*)
+               mongo::FetchStage::doWork(unsigned long*)
+               mongo::PlanStage::work(unsigned long*)
+               mongo::IndexScan::doWork(unsigned long*)
+               mongo::IndexScan::initIndexScan()
+               mongo::(anonymous namespace)::WiredTigerIndexCursorBase::seek(mongo::KeyString::Value const&, mongo::SortedDataInterface::Cursor::RequestedInfo)
+               mongo::(anonymous namespace)::WiredTigerIndexCursorBase::seekWTCursor(mongo::KeyString::Value const&)
+               int mongo::wiredTigerPrepareConflictRetry<mongo::(anonymous namespace)::WiredTigerIndexCursorBase::seekWTCursor(mongo::KeyString::Value const&)::{lambda()#1}>(mongo::OperationContext*, mongo::(anonymous namespace)::WiredTigerIndexCursorBase::seekWTCursor(mongo::KeyString::Value const&)::{lambda()#1}&&)
+               __curfile_search_near
+               __wt_btcur_search_near
+               __wt_btcur_next
+               __wt_txn_upd_value_visible_all
+
+     0.52%             1  Backgro.kSource  [unknown]         [k] 0xffffffff9b4001b4
+            |
+            ---clone3
+               execute_native_thread_routine
+               std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::BackgroundThreadClockSource::_startTimerThread()::{lambda()#1}, , 0>(mongo::BackgroundThreadClockSource::_startTimerThread()::{lambda()#1})::{lambda()#1}> > >::_M_run()
+               mongo::ClockSource::waitForConditionUntil(mongo::stdx::condition_variable&, mongo::BasicLockableAdapter, mongo::Date_t, mongo::Waitable*)
+               pthread_cond_timedwait@@GLIBC_2.3.2
+               __GI___futex_abstimed_wait_cancelable64
+               0xffffffff9b4001b7
+
+     0.52%             1  IndexBu.ongod-1  mongod            [.] __config_next
+            |
+            ---clone3
+               execute_native_thread_routine
+               std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::ThreadPool::_startWorkerThread_inlock()::{lambda()#4}, , 0>(mongo::ThreadPool::_startWorkerThread_inlock()::{lambda()#4})::{lambda()#1}> > >::_M_run()
+               mongo::ThreadPool::_workerThreadBody(mongo::ThreadPool*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)
+               mongo::ThreadPool::_consumeTasks()
+               mongo::ThreadPool::_doOneTask(std::unique_lock<mongo::latch_detail::Latch>*)
+               mongo::unique_function<void (mongo::Status)>::makeImpl<mongo::IndexBuildsCoordinatorMongod::startIndexBuild(mongo::OperationContext*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, mongo::UUID, std::vector<mongo::BSONObj, std::allocator<mongo::BSONObj> > const&, mongo::UUID const&, mongo::IndexBuildProtocol, mongo::IndexBuildsCoordinator::IndexBuildOptions)::{lambda(auto:1)#5}>(mongo::IndexBuildsCoordinatorMongod::startIndexBuild(mongo::OperationContext*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, mongo::UUID, std::vector<mongo::BSONObj, std::allocator<mongo::BSONObj> > const&, mongo::UUID const&, mongo::IndexBuildProtocol, mongo::IndexBuildsCoordinator::IndexBuildOptions)::{lambda(auto:1)#5}&&)::SpecificImpl::call(mongo::Status&&)
+               auto mongo::IndexBuildsCoordinatorMongod::startIndexBuild(mongo::OperationContext*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, mongo::UUID, std::vector<mongo::BSONObj, std::allocator<mongo::BSONObj> > const&, mongo::UUID const&, mongo::IndexBuildProtocol, mongo::IndexBuildsCoordinator::IndexBuildOptions)::{lambda(auto:1)#5}::operator()<mongo::Status>(mongo::Status)
+               mongo::IndexBuildsCoordinator::_setUpIndexBuild(mongo::OperationContext*, mongo::UUID const&, mongo::Timestamp, mongo::IndexBuildsCoordinator::IndexBuildOptions const&)
+               mongo::IndexBuildsCoordinator::_setUpIndexBuildInner(mongo::OperationContext*, std::shared_ptr<mongo::ReplIndexBuildState>, mongo::Timestamp, mongo::IndexBuildsCoordinator::IndexBuildOptions const&)
+               mongo::IndexBuildsManager::setUpIndexBuild(mongo::OperationContext*, mongo::Collection*, std::vector<mongo::BSONObj, std::allocator<mongo::BSONObj> > const&, mongo::UUID const&, std::function<mongo::Status (std::vector<mongo::BSONObj, std::allocator<mongo::BSONObj> >&)>, mongo::IndexBuildsManager::SetupOptions)
+               mongo::IndexBuildsManager::setUpIndexBuild(mongo::OperationContext*, mongo::Collection*, std::vector<mongo::BSONObj, std::allocator<mongo::BSONObj> > const&, mongo::UUID const&, std::function<mongo::Status (std::vector<mongo::BSONObj, std::allocator<mongo::BSONObj> >&)>, mongo::IndexBuildsManager::SetupOptions)::{lambda()#2}::operator()() const
+               mongo::MultiIndexBlock::init(mongo::OperationContext*, mongo::Collection*, std::vector<mongo::BSONObj, std::allocator<mongo::BSONObj> > const&, std::function<mongo::Status (std::vector<mongo::BSONObj, std::allocator<mongo::BSONObj> >&)>)
+               mongo::IndexBuildBlock::init(mongo::OperationContext*, mongo::Collection*)
+               mongo::IndexCatalogImpl::createIndexEntry(mongo::OperationContext*, std::unique_ptr<mongo::IndexDescriptor, std::default_delete<mongo::IndexDescriptor> >, mongo::CreateIndexEntryFlags)
+               mongo::WiredTigerKVEngine::getGroupedSortedDataInterface(mongo::OperationContext*, mongo::StringData, mongo::IndexDescriptor const*, mongo::KVPrefix)
+               mongo::WiredTigerIndexStandard::WiredTigerIndexStandard(mongo::OperationContext*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, mongo::IndexDescriptor const*, mongo::KVPrefix, bool)
+               mongo::WiredTigerIndex::WiredTigerIndex(mongo::OperationContext*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, mongo::IndexDescriptor const*, mongo::KVPrefix, bool)
+               mongo::WiredTigerIndex::_handleVersionInfo(mongo::OperationContext*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, mongo::IndexDescriptor const*, bool)
+               mongo::WiredTigerUtil::setTableLogging(mongo::OperationContext*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, bool)
+               mongo::WiredTigerUtil::setTableLogging(__wt_session*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, bool)
+               mongo::WiredTigerUtil::getMetadataCreate[abi:cxx11](__wt_session*, mongo::StringData)
+               mongo::(anonymous namespace)::_getMetadata(__wt_cursor*, mongo::StringData)
+               __curmetadata_search
+               __curmetadata_setkv
+               __schema_create_collapse.isra.6
+               __wt_config_collapse
+               __wt_config_get.part.0
+               __config_getraw.constprop.1
+               __config_next
+
+     0.52%             1  OplogVi.yThread  [unknown]         [k] 0xffffffff9b8ca081
+            |
+            ---clone3
+               execute_native_thread_routine
+               std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<void (mongo::WiredTigerOplogManager::*)(mongo::WiredTigerSessionCache*, mongo::WiredTigerRecordStore*), mongo::WiredTigerOplogManager*, mongo::WiredTigerSessionCache*, mongo::WiredTigerRecordStore*&, 0>(void (mongo::WiredTigerOplogManager::*)(mongo::WiredTigerSessionCache*, mongo::WiredTigerRecordStore*), mongo::WiredTigerOplogManager*&&, mongo::WiredTigerSessionCache*&&, mongo::WiredTigerRecordStore*&)::{lambda()#1}> > >::_M_run()
+               mongo::WiredTigerOplogManager::_updateOplogVisibilityLoop(mongo::WiredTigerSessionCache*, mongo::WiredTigerRecordStore*)
+               __GI___lll_lock_wake
+               0xffffffff9b40012b
+               0xffffffff9c992650
+               0xffffffff9b68be8d
+               0xffffffff9b8cc6d9
+               0xffffffff9b8cbe9e
+               0xffffffff9b8cf4ca
+               0xffffffff9b8ca083
+
+     0.52%             1  OplogVi.yThread  [unknown]         [k] 0xffffffff9b8cc63a
+            |
+            ---clone3
+               execute_native_thread_routine
+               std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<void (mongo::WiredTigerOplogManager::*)(mongo::WiredTigerSessionCache*, mongo::WiredTigerRecordStore*), mongo::WiredTigerOplogManager*, mongo::WiredTigerSessionCache*, mongo::WiredTigerRecordStore*&, 0>(void (mongo::WiredTigerOplogManager::*)(mongo::WiredTigerSessionCache*, mongo::WiredTigerRecordStore*), mongo::WiredTigerOplogManager*&&, mongo::WiredTigerSessionCache*&&, mongo::WiredTigerRecordStore*&)::{lambda()#1}> > >::_M_run()
+               mongo::WiredTigerOplogManager::_updateOplogVisibilityLoop(mongo::WiredTigerSessionCache*, mongo::WiredTigerRecordStore*)
+               pthread_cond_timedwait@@GLIBC_2.3.2
+               __GI___futex_abstimed_wait_cancelable64
+               0xffffffff9b40012b
+               0xffffffff9c992650
+               0xffffffff9b68be8d
+               0xffffffff9b8cc63e
+
+     0.52%             1  OplogVi.yThread  [unknown]         [.] 0000000000000000
+            |
+            ---clone3
+               execute_native_thread_routine
+               std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<void (mongo::WiredTigerOplogManager::*)(mongo::WiredTigerSessionCache*, mongo::WiredTigerRecordStore*), mongo::WiredTigerOplogManager*, mongo::WiredTigerSessionCache*, mongo::WiredTigerRecordStore*&, 0>(void (mongo::WiredTigerOplogManager::*)(mongo::WiredTigerSessionCache*, mongo::WiredTigerRecordStore*), mongo::WiredTigerOplogManager*&&, mongo::WiredTigerSessionCache*&&, mongo::WiredTigerRecordStore*&)::{lambda()#1}> > >::_M_run()
+               mongo::WiredTigerOplogManager::_updateOplogVisibilityLoop(mongo::WiredTigerSessionCache*, mongo::WiredTigerRecordStore*)
+               __GI___lll_lock_wake
+               0xffffffff9b40014d
+
+     0.52%             1  TTLMonitor       mongod            [.] mongo::repl::ReplicationCoordinatorImpl::setMyLastAppliedOpTimeAndWallTimeForward(mongo::repl::OpTimeAndWallTime const&, mongo::repl::ReplicationCoordinator::DataConsistency)
+            |
+            ---clone3
+               execute_native_thread_routine
+               std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::BackgroundJob::go()::{lambda()#2}, , 0>(mongo::BackgroundJob::go()::{lambda()#2})::{lambda()#1}> > >::_M_run()
+               mongo::BackgroundJob::jobBody()
+               mongo::TTLMonitor::run()
+               mongo::TTLMonitor::doTTLPass()
+               mongo::TTLMonitor::doTTLForIndex(mongo::OperationContext*, mongo::NamespaceString, mongo::BSONObj)
+               mongo::PlanExecutorImpl::executePlan()
+               mongo::PlanExecutorImpl::getNext(mongo::Document*, mongo::RecordId*)
+               mongo::PlanExecutorImpl::_getNextImpl(mongo::Snapshotted<mongo::Document>*, mongo::RecordId*)
+               mongo::PlanStage::work(unsigned long*)
+               mongo::DeleteStage::doWork(unsigned long*)
+               mongo::WriteUnitOfWork::commit()
+               mongo::WiredTigerRecoveryUnit::doCommitUnitOfWork()
+               mongo::WiredTigerRecoveryUnit::_commit()
+               mongo::RecoveryUnit::commitRegisteredChanges(boost::optional<mongo::Timestamp>)
+               mongo::RecoveryUnit::onCommit<mongo::repl::_logOpsInner(mongo::OperationContext*, mongo::NamespaceString const&, std::vector<mongo::Record, std::allocator<mongo::Record> >*, std::vector<mongo::Timestamp, std::allocator<mongo::Timestamp> > const&, mongo::Collection*, mongo::repl::OpTime, mongo::Date_t)::{lambda(boost::optional<mongo::Timestamp>)#3}>(mongo::repl::_logOpsInner(mongo::OperationContext*, mongo::NamespaceString const&, std::vector<mongo::Record, std::allocator<mongo::Record> >*, std::vector<mongo::Timestamp, std::allocator<mongo::Timestamp> > const&, mongo::Collection*, mongo::repl::OpTime, mongo::Date_t)::{lambda(boost::optional<mongo::Timestamp>)#3})::OnCommitChange::commit(boost::optional<mongo::Timestamp>)
+               mongo::repl::ReplicationCoordinatorImpl::setMyLastAppliedOpTimeAndWallTimeForward(mongo::repl::OpTimeAndWallTime const&, mongo::repl::ReplicationCoordinator::DataConsistency)
+
+     0.52%             1  TTLMonitor       [unknown]         [k] 0xffffffff9b819d10
+            |
+            ---clone3
+               execute_native_thread_routine
+               std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::BackgroundJob::go()::{lambda()#2}, , 0>(mongo::BackgroundJob::go()::{lambda()#2})::{lambda()#1}> > >::_M_run()
+               mongo::BackgroundJob::jobBody()
+               mongo::TTLMonitor::run()
+               mongo::sleepsecs(int)
+               __nanosleep
+               clock_nanosleep@GLIBC_2.2.5
+               0xffffffff9b40012b
+               0xffffffff9c992650
+               0xffffffff9b68bfb9
+               0xffffffff9b8b815f
+               0xffffffff9b8b5923
+               0xffffffff9b8a9dab
+               0xffffffff9c9a8164
+               0xffffffff9b8a8f23
+               0xffffffff9b8a8184
+               0xffffffff9b819d15
+
+     0.52%             1  WTJourn.Flusher  libc.so.6         [.] __GI___pthread_disable_asynccancel
+            |
+            ---clone3
+               execute_native_thread_routine
+               std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::BackgroundJob::go()::{lambda()#2}, , 0>(mongo::BackgroundJob::go()::{lambda()#2})::{lambda()#1}> > >::_M_run()
+               mongo::BackgroundJob::jobBody()
+               mongo::WiredTigerKVEngine::WiredTigerJournalFlusher::run()
+               mongo::WiredTigerSessionCache::waitUntilDurable(mongo::OperationContext*, mongo::WiredTigerSessionCache::Fsync, mongo::WiredTigerSessionCache::UseJournalListener)
+               __session_log_flush
+               __wt_log_flush
+               __wt_log_force_sync
+               __posix_sync
+               __GI___pthread_disable_asynccancel
+
+     0.52%             1  WTJourn.Flusher  mongod            [.] std::_Rb_tree_rebalance_for_erase(std::_Rb_tree_node_base*, std::_Rb_tree_node_base&)
+            |
+            ---clone3
+               execute_native_thread_routine
+               std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::BackgroundJob::go()::{lambda()#2}, , 0>(mongo::BackgroundJob::go()::{lambda()#2})::{lambda()#1}> > >::_M_run()
+               mongo::BackgroundJob::jobBody()
+               mongo::WiredTigerKVEngine::WiredTigerJournalFlusher::run()
+               mongo::WiredTigerSessionCache::waitUntilDurable(mongo::OperationContext*, mongo::WiredTigerSessionCache::Fsync, mongo::WiredTigerSessionCache::UseJournalListener)
+               mongo::repl::ReplicationCoordinatorImpl::setMyLastDurableOpTimeAndWallTimeForward(mongo::repl::OpTimeAndWallTime const&)
+               mongo::repl::ReplicationCoordinatorImpl::_setMyLastDurableOpTimeAndWallTime(mongo::WithLock, mongo::repl::OpTimeAndWallTime const&, bool)
+               mongo::repl::ReplicationCoordinatorImpl::_updateLastCommittedOpTimeAndWallTime(mongo::WithLock)
+               mongo::repl::ReplicationCoordinatorImpl::_setStableTimestampForStorage(mongo::WithLock)
+               std::_Rb_tree_rebalance_for_erase(std::_Rb_tree_node_base*, std::_Rb_tree_node_base&)
+
+     0.52%             1  ftdc             libc.so.6         [.] __strchrnul_avx2
+            |
+            ---clone3
+               execute_native_thread_routine
+               std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::FTDCController::start()::{lambda()#2}, , 0>(mongo::FTDCController::start()::{lambda()#2})::{lambda()#1}> > >::_M_run()
+               mongo::FTDCController::doLoop()
+               mongo::FTDCCollectorCollection::collect(mongo::Client*)
+               mongo::FTDCSimpleInternalCommandCollector::collect(mongo::OperationContext*, mongo::BSONObjBuilder&)
+               mongo::CommandHelpers::runCommandDirectly(mongo::OperationContext*, mongo::OpMsgRequest const&)
+               mongo::BasicCommandWithReplyBuilderInterface::Invocation::run(mongo::OperationContext*, mongo::rpc::ReplyBuilderInterface*)
+               mongo::ErrmsgCommandDeprecated::run(mongo::OperationContext*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, mongo::BSONObj const&, mongo::BSONObjBuilder&)
+               mongo::(anonymous namespace)::CollectionStats::errmsgRun(mongo::OperationContext*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, mongo::BSONObj const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, mongo::BSONObjBuilder&)
+               mongo::appendCollectionStorageStats(mongo::OperationContext*, mongo::NamespaceString const&, mongo::BSONObj const&, mongo::BSONObjBuilder*)
+               mongo::WiredTigerRecordStore::appendCustomStats(mongo::OperationContext*, mongo::BSONObjBuilder*, double) const
+               mongo::WiredTigerUtil::exportTableToBSON(__wt_session*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, mongo::BSONObjBuilder*)
+               mongo::WiredTigerUtil::exportTableToBSON(__wt_session*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, mongo::BSONObjBuilder*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&)
+               __curstat_next
+               __wt_buf_fmt
+               __wt_vsnprintf_len_incr
+               __vsnprintf_internal
+               __strchrnul_avx2
+
+
+
+#
+# (Cannot load tips.txt file, please install perf!)
+#

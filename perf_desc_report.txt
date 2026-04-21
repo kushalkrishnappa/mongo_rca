@@ -1,0 +1,465 @@
+Warning:
+Kernel address maps (/proc/{kallsyms,modules}) were restricted.
+
+Check /proc/sys/kernel/kptr_restrict before running 'perf record'.
+
+As no suitable kallsyms nor vmlinux was found, kernel samples
+can't be resolved.
+
+Samples in kernel modules can't be resolved as well.
+
+# To display the perf.data header info, please use --header/--header-only options.
+#
+#
+# Total Lost Samples: 0
+#
+# Samples: 632  of event 'cycles:P'
+# Event count (approx.): 19839379459
+#
+# Overhead       Samples  Command          Shared Object     Symbol                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
+# ........  ............  ...............  ................  ..........................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................
+#
+    28.71%           161  TTLMonitor       mongod            [.] __wt_txn_read
+            |
+            ---clone3
+               execute_native_thread_routine
+               std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::BackgroundJob::go()::{lambda()#2}, , 0>(mongo::BackgroundJob::go()::{lambda()#2})::{lambda()#1}> > >::_M_run()
+               mongo::BackgroundJob::jobBody()
+               mongo::TTLMonitor::run()
+               mongo::TTLMonitor::doTTLPass()
+               mongo::TTLMonitor::doTTLForIndex(mongo::OperationContext*, mongo::NamespaceString, mongo::BSONObj)
+               mongo::PlanExecutorImpl::executePlan()
+               mongo::PlanExecutorImpl::getNext(mongo::Document*, mongo::RecordId*)
+               mongo::PlanExecutorImpl::_getNextImpl(mongo::Snapshotted<mongo::Document>*, mongo::RecordId*)
+               |          
+               |--27.41%--mongo::PlanStage::work(unsigned long*)
+               |          mongo::DeleteStage::doWork(unsigned long*)
+               |          mongo::PlanStage::restoreState()
+               |          mongo::RequiresCollectionStageBase<mongo::Collection const*>::doRestoreState()
+               |          mongo::RequiresIndexStage::doRestoreStateRequiresCollection()
+               |          mongo::(anonymous namespace)::WiredTigerIndexCursorBase::restore()
+               |          mongo::(anonymous namespace)::WiredTigerIndexCursorBase::seekWTCursor(mongo::KeyString::Value const&)
+               |          int mongo::wiredTigerPrepareConflictRetry<mongo::(anonymous namespace)::WiredTigerIndexCursorBase::seekWTCursor(mongo::KeyString::Value const&)::{lambda()#1}>(mongo::OperationContext*, mongo::(anonymous namespace)::WiredTigerIndexCursorBase::seekWTCursor(mongo::KeyString::Value const&)::{lambda()#1}&&)
+               |          __curfile_search_near
+               |          __wt_btcur_search_near
+               |          __wt_btcur_prev
+               |          __wt_txn_read
+               |          
+                --1.30%--mongo::PlanYieldPolicy::yieldOrInterrupt(std::function<void ()>)
+                          mongo::PlanExecutorImpl::restoreStateWithoutRetrying()
+                          mongo::PlanStage::restoreState()
+                          mongo::PlanStage::restoreState()
+                          mongo::RequiresCollectionStageBase<mongo::Collection const*>::doRestoreState()
+                          mongo::RequiresIndexStage::doRestoreStateRequiresCollection()
+                          mongo::(anonymous namespace)::WiredTigerIndexCursorBase::restore()
+                          mongo::(anonymous namespace)::WiredTigerIndexCursorBase::seekWTCursor(mongo::KeyString::Value const&)
+                          int mongo::wiredTigerPrepareConflictRetry<mongo::(anonymous namespace)::WiredTigerIndexCursorBase::seekWTCursor(mongo::KeyString::Value const&)::{lambda()#1}>(mongo::OperationContext*, mongo::(anonymous namespace)::WiredTigerIndexCursorBase::seekWTCursor(mongo::KeyString::Value const&)::{lambda()#1}&&)
+                          __curfile_search_near
+                          __wt_btcur_search_near
+                          __wt_btcur_prev
+                          __wt_txn_read
+
+    27.00%           151  TTLMonitor       mongod            [.] __wt_txn_read
+            |
+            ---clone3
+               execute_native_thread_routine
+               std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::BackgroundJob::go()::{lambda()#2}, , 0>(mongo::BackgroundJob::go()::{lambda()#2})::{lambda()#1}> > >::_M_run()
+               mongo::BackgroundJob::jobBody()
+               mongo::TTLMonitor::run()
+               mongo::TTLMonitor::doTTLPass()
+               mongo::TTLMonitor::doTTLForIndex(mongo::OperationContext*, mongo::NamespaceString, mongo::BSONObj)
+               mongo::PlanExecutorImpl::executePlan()
+               mongo::PlanExecutorImpl::getNext(mongo::Document*, mongo::RecordId*)
+               mongo::PlanExecutorImpl::_getNextImpl(mongo::Snapshotted<mongo::Document>*, mongo::RecordId*)
+               |          
+               |--26.10%--mongo::PlanStage::work(unsigned long*)
+               |          mongo::DeleteStage::doWork(unsigned long*)
+               |          mongo::PlanStage::restoreState()
+               |          mongo::RequiresCollectionStageBase<mongo::Collection const*>::doRestoreState()
+               |          mongo::RequiresIndexStage::doRestoreStateRequiresCollection()
+               |          mongo::(anonymous namespace)::WiredTigerIndexCursorBase::restore()
+               |          mongo::(anonymous namespace)::WiredTigerIndexCursorBase::seekWTCursor(mongo::KeyString::Value const&)
+               |          int mongo::wiredTigerPrepareConflictRetry<mongo::(anonymous namespace)::WiredTigerIndexCursorBase::seekWTCursor(mongo::KeyString::Value const&)::{lambda()#1}>(mongo::OperationContext*, mongo::(anonymous namespace)::WiredTigerIndexCursorBase::seekWTCursor(mongo::KeyString::Value const&)::{lambda()#1}&&)
+               |          __curfile_search_near
+               |          __wt_btcur_search_near
+               |          |          
+               |          |--25.56%--__wt_btcur_next
+               |          |          __wt_txn_read
+               |          |          
+               |           --0.54%--__wt_txn_read
+               |          
+                --0.90%--mongo::PlanYieldPolicy::yieldOrInterrupt(std::function<void ()>)
+                          mongo::PlanExecutorImpl::restoreStateWithoutRetrying()
+                          mongo::PlanStage::restoreState()
+                          mongo::PlanStage::restoreState()
+                          mongo::RequiresCollectionStageBase<mongo::Collection const*>::doRestoreState()
+                          mongo::RequiresIndexStage::doRestoreStateRequiresCollection()
+                          mongo::(anonymous namespace)::WiredTigerIndexCursorBase::restore()
+                          mongo::(anonymous namespace)::WiredTigerIndexCursorBase::seekWTCursor(mongo::KeyString::Value const&)
+                          int mongo::wiredTigerPrepareConflictRetry<mongo::(anonymous namespace)::WiredTigerIndexCursorBase::seekWTCursor(mongo::KeyString::Value const&)::{lambda()#1}>(mongo::OperationContext*, mongo::(anonymous namespace)::WiredTigerIndexCursorBase::seekWTCursor(mongo::KeyString::Value const&)::{lambda()#1}&&)
+                          __curfile_search_near
+                          __wt_btcur_search_near
+                          __wt_btcur_next
+                          __wt_txn_read
+
+     8.45%            47  TTLMonitor       mongod            [.] __wt_btcur_prev
+            |
+            ---clone3
+               execute_native_thread_routine
+               std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::BackgroundJob::go()::{lambda()#2}, , 0>(mongo::BackgroundJob::go()::{lambda()#2})::{lambda()#1}> > >::_M_run()
+               mongo::BackgroundJob::jobBody()
+               mongo::TTLMonitor::run()
+               mongo::TTLMonitor::doTTLPass()
+               mongo::TTLMonitor::doTTLForIndex(mongo::OperationContext*, mongo::NamespaceString, mongo::BSONObj)
+               mongo::PlanExecutorImpl::executePlan()
+               mongo::PlanExecutorImpl::getNext(mongo::Document*, mongo::RecordId*)
+               mongo::PlanExecutorImpl::_getNextImpl(mongo::Snapshotted<mongo::Document>*, mongo::RecordId*)
+               |          
+               |--7.73%--mongo::PlanStage::work(unsigned long*)
+               |          mongo::DeleteStage::doWork(unsigned long*)
+               |          |          
+               |           --7.56%--mongo::PlanStage::restoreState()
+               |                     mongo::RequiresCollectionStageBase<mongo::Collection const*>::doRestoreState()
+               |                     mongo::RequiresIndexStage::doRestoreStateRequiresCollection()
+               |                     mongo::(anonymous namespace)::WiredTigerIndexCursorBase::restore()
+               |                     mongo::(anonymous namespace)::WiredTigerIndexCursorBase::seekWTCursor(mongo::KeyString::Value const&)
+               |                     int mongo::wiredTigerPrepareConflictRetry<mongo::(anonymous namespace)::WiredTigerIndexCursorBase::seekWTCursor(mongo::KeyString::Value const&)::{lambda()#1}>(mongo::OperationContext*, mongo::(anonymous namespace)::WiredTigerIndexCursorBase::seekWTCursor(mongo::KeyString::Value const&)::{lambda()#1}&&)
+               |                     __curfile_search_near
+               |                     __wt_btcur_search_near
+               |                     __wt_btcur_prev
+               |          
+                --0.72%--mongo::PlanYieldPolicy::yieldOrInterrupt(std::function<void ()>)
+                          mongo::PlanExecutorImpl::restoreStateWithoutRetrying()
+                          mongo::PlanStage::restoreState()
+                          mongo::PlanStage::restoreState()
+                          mongo::RequiresCollectionStageBase<mongo::Collection const*>::doRestoreState()
+                          mongo::RequiresIndexStage::doRestoreStateRequiresCollection()
+                          mongo::(anonymous namespace)::WiredTigerIndexCursorBase::restore()
+                          mongo::(anonymous namespace)::WiredTigerIndexCursorBase::seekWTCursor(mongo::KeyString::Value const&)
+                          int mongo::wiredTigerPrepareConflictRetry<mongo::(anonymous namespace)::WiredTigerIndexCursorBase::seekWTCursor(mongo::KeyString::Value const&)::{lambda()#1}>(mongo::OperationContext*, mongo::(anonymous namespace)::WiredTigerIndexCursorBase::seekWTCursor(mongo::KeyString::Value const&)::{lambda()#1}&&)
+                          __curfile_search_near
+                          __wt_btcur_search_near
+                          __wt_btcur_prev
+
+     8.41%            48  TTLMonitor       mongod            [.] __wt_btcur_next
+            |
+            ---clone3
+               execute_native_thread_routine
+               std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::BackgroundJob::go()::{lambda()#2}, , 0>(mongo::BackgroundJob::go()::{lambda()#2})::{lambda()#1}> > >::_M_run()
+               mongo::BackgroundJob::jobBody()
+               mongo::TTLMonitor::run()
+               mongo::TTLMonitor::doTTLPass()
+               mongo::TTLMonitor::doTTLForIndex(mongo::OperationContext*, mongo::NamespaceString, mongo::BSONObj)
+               mongo::PlanExecutorImpl::executePlan()
+               mongo::PlanExecutorImpl::getNext(mongo::Document*, mongo::RecordId*)
+               mongo::PlanExecutorImpl::_getNextImpl(mongo::Snapshotted<mongo::Document>*, mongo::RecordId*)
+               |          
+                --8.23%--mongo::PlanStage::work(unsigned long*)
+                          mongo::DeleteStage::doWork(unsigned long*)
+                          mongo::PlanStage::restoreState()
+                          mongo::RequiresCollectionStageBase<mongo::Collection const*>::doRestoreState()
+                          mongo::RequiresIndexStage::doRestoreStateRequiresCollection()
+                          mongo::(anonymous namespace)::WiredTigerIndexCursorBase::restore()
+                          mongo::(anonymous namespace)::WiredTigerIndexCursorBase::seekWTCursor(mongo::KeyString::Value const&)
+                          int mongo::wiredTigerPrepareConflictRetry<mongo::(anonymous namespace)::WiredTigerIndexCursorBase::seekWTCursor(mongo::KeyString::Value const&)::{lambda()#1}>(mongo::OperationContext*, mongo::(anonymous namespace)::WiredTigerIndexCursorBase::seekWTCursor(mongo::KeyString::Value const&)::{lambda()#1}&&)
+                          __curfile_search_near
+                          __wt_btcur_search_near
+                          |          
+                           --8.05%--__wt_btcur_next
+
+     7.00%            39  TTLMonitor       mongod            [.] __wt_txn_upd_value_visible_all
+            |
+            ---clone3
+               execute_native_thread_routine
+               std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::BackgroundJob::go()::{lambda()#2}, , 0>(mongo::BackgroundJob::go()::{lambda()#2})::{lambda()#1}> > >::_M_run()
+               mongo::BackgroundJob::jobBody()
+               mongo::TTLMonitor::run()
+               mongo::TTLMonitor::doTTLPass()
+               mongo::TTLMonitor::doTTLForIndex(mongo::OperationContext*, mongo::NamespaceString, mongo::BSONObj)
+               mongo::PlanExecutorImpl::executePlan()
+               mongo::PlanExecutorImpl::getNext(mongo::Document*, mongo::RecordId*)
+               mongo::PlanExecutorImpl::_getNextImpl(mongo::Snapshotted<mongo::Document>*, mongo::RecordId*)
+               |          
+               |--6.46%--mongo::PlanStage::work(unsigned long*)
+               |          mongo::DeleteStage::doWork(unsigned long*)
+               |          mongo::PlanStage::restoreState()
+               |          mongo::RequiresCollectionStageBase<mongo::Collection const*>::doRestoreState()
+               |          mongo::RequiresIndexStage::doRestoreStateRequiresCollection()
+               |          mongo::(anonymous namespace)::WiredTigerIndexCursorBase::restore()
+               |          mongo::(anonymous namespace)::WiredTigerIndexCursorBase::seekWTCursor(mongo::KeyString::Value const&)
+               |          int mongo::wiredTigerPrepareConflictRetry<mongo::(anonymous namespace)::WiredTigerIndexCursorBase::seekWTCursor(mongo::KeyString::Value const&)::{lambda()#1}>(mongo::OperationContext*, mongo::(anonymous namespace)::WiredTigerIndexCursorBase::seekWTCursor(mongo::KeyString::Value const&)::{lambda()#1}&&)
+               |          __curfile_search_near
+               |          __wt_btcur_search_near
+               |          |          
+               |          |--5.75%--__wt_btcur_next
+               |          |          |          
+               |          |           --5.22%--__wt_txn_upd_value_visible_all
+               |          |          
+               |           --0.71%--__wt_txn_upd_value_visible_all
+               |          
+                --0.54%--mongo::PlanYieldPolicy::yieldOrInterrupt(std::function<void ()>)
+                          mongo::PlanExecutorImpl::restoreStateWithoutRetrying()
+                          mongo::PlanStage::restoreState()
+                          mongo::PlanStage::restoreState()
+                          mongo::RequiresCollectionStageBase<mongo::Collection const*>::doRestoreState()
+                          mongo::RequiresIndexStage::doRestoreStateRequiresCollection()
+                          mongo::(anonymous namespace)::WiredTigerIndexCursorBase::restore()
+                          mongo::(anonymous namespace)::WiredTigerIndexCursorBase::seekWTCursor(mongo::KeyString::Value const&)
+                          int mongo::wiredTigerPrepareConflictRetry<mongo::(anonymous namespace)::WiredTigerIndexCursorBase::seekWTCursor(mongo::KeyString::Value const&)::{lambda()#1}>(mongo::OperationContext*, mongo::(anonymous namespace)::WiredTigerIndexCursorBase::seekWTCursor(mongo::KeyString::Value const&)::{lambda()#1}&&)
+                          __curfile_search_near
+                          __wt_btcur_search_near
+                          __wt_btcur_next
+
+     6.28%            35  TTLMonitor       mongod            [.] __wt_txn_upd_value_visible_all
+            |
+            ---clone3
+               execute_native_thread_routine
+               std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::BackgroundJob::go()::{lambda()#2}, , 0>(mongo::BackgroundJob::go()::{lambda()#2})::{lambda()#1}> > >::_M_run()
+               mongo::BackgroundJob::jobBody()
+               mongo::TTLMonitor::run()
+               mongo::TTLMonitor::doTTLPass()
+               mongo::TTLMonitor::doTTLForIndex(mongo::OperationContext*, mongo::NamespaceString, mongo::BSONObj)
+               mongo::PlanExecutorImpl::executePlan()
+               mongo::PlanExecutorImpl::getNext(mongo::Document*, mongo::RecordId*)
+               mongo::PlanExecutorImpl::_getNextImpl(mongo::Snapshotted<mongo::Document>*, mongo::RecordId*)
+               |          
+               |--5.74%--mongo::PlanStage::work(unsigned long*)
+               |          mongo::DeleteStage::doWork(unsigned long*)
+               |          mongo::PlanStage::restoreState()
+               |          mongo::RequiresCollectionStageBase<mongo::Collection const*>::doRestoreState()
+               |          mongo::RequiresIndexStage::doRestoreStateRequiresCollection()
+               |          mongo::(anonymous namespace)::WiredTigerIndexCursorBase::restore()
+               |          mongo::(anonymous namespace)::WiredTigerIndexCursorBase::seekWTCursor(mongo::KeyString::Value const&)
+               |          int mongo::wiredTigerPrepareConflictRetry<mongo::(anonymous namespace)::WiredTigerIndexCursorBase::seekWTCursor(mongo::KeyString::Value const&)::{lambda()#1}>(mongo::OperationContext*, mongo::(anonymous namespace)::WiredTigerIndexCursorBase::seekWTCursor(mongo::KeyString::Value const&)::{lambda()#1}&&)
+               |          __curfile_search_near
+               |          __wt_btcur_search_near
+               |          __wt_btcur_prev
+               |          |          
+               |           --5.02%--__wt_txn_upd_value_visible_all
+               |          
+                --0.53%--mongo::PlanYieldPolicy::yieldOrInterrupt(std::function<void ()>)
+                          mongo::PlanExecutorImpl::restoreStateWithoutRetrying()
+                          mongo::PlanStage::restoreState()
+                          mongo::PlanStage::restoreState()
+                          mongo::RequiresCollectionStageBase<mongo::Collection const*>::doRestoreState()
+                          mongo::RequiresIndexStage::doRestoreStateRequiresCollection()
+                          mongo::(anonymous namespace)::WiredTigerIndexCursorBase::restore()
+                          mongo::(anonymous namespace)::WiredTigerIndexCursorBase::seekWTCursor(mongo::KeyString::Value const&)
+                          int mongo::wiredTigerPrepareConflictRetry<mongo::(anonymous namespace)::WiredTigerIndexCursorBase::seekWTCursor(mongo::KeyString::Value const&)::{lambda()#1}>(mongo::OperationContext*, mongo::(anonymous namespace)::WiredTigerIndexCursorBase::seekWTCursor(mongo::KeyString::Value const&)::{lambda()#1}&&)
+                          __curfile_search_near
+                          __wt_btcur_search_near
+                          __wt_btcur_prev
+                          __wt_txn_upd_value_visible_all
+
+     1.44%             8  TTLMonitor       mongod            [.] __wt_gen
+            |
+            ---clone3
+               execute_native_thread_routine
+               std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::BackgroundJob::go()::{lambda()#2}, , 0>(mongo::BackgroundJob::go()::{lambda()#2})::{lambda()#1}> > >::_M_run()
+               mongo::BackgroundJob::jobBody()
+               mongo::TTLMonitor::run()
+               mongo::TTLMonitor::doTTLPass()
+               mongo::TTLMonitor::doTTLForIndex(mongo::OperationContext*, mongo::NamespaceString, mongo::BSONObj)
+               mongo::PlanExecutorImpl::executePlan()
+               mongo::PlanExecutorImpl::getNext(mongo::Document*, mongo::RecordId*)
+               mongo::PlanExecutorImpl::_getNextImpl(mongo::Snapshotted<mongo::Document>*, mongo::RecordId*)
+               mongo::PlanStage::work(unsigned long*)
+               mongo::DeleteStage::doWork(unsigned long*)
+               mongo::PlanStage::restoreState()
+               mongo::RequiresCollectionStageBase<mongo::Collection const*>::doRestoreState()
+               mongo::RequiresIndexStage::doRestoreStateRequiresCollection()
+               mongo::(anonymous namespace)::WiredTigerIndexCursorBase::restore()
+               mongo::(anonymous namespace)::WiredTigerIndexCursorBase::seekWTCursor(mongo::KeyString::Value const&)
+               int mongo::wiredTigerPrepareConflictRetry<mongo::(anonymous namespace)::WiredTigerIndexCursorBase::seekWTCursor(mongo::KeyString::Value const&)::{lambda()#1}>(mongo::OperationContext*, mongo::(anonymous namespace)::WiredTigerIndexCursorBase::seekWTCursor(mongo::KeyString::Value const&)::{lambda()#1}&&)
+               __curfile_search_near
+               __wt_btcur_search_near
+               |          
+                --1.08%--__wt_btcur_prev
+                          __wt_gen
+
+     1.26%             7  TTLMonitor       mongod            [.] __wt_row_leaf_key_work
+            |
+            ---clone3
+               execute_native_thread_routine
+               std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::BackgroundJob::go()::{lambda()#2}, , 0>(mongo::BackgroundJob::go()::{lambda()#2})::{lambda()#1}> > >::_M_run()
+               mongo::BackgroundJob::jobBody()
+               mongo::TTLMonitor::run()
+               mongo::TTLMonitor::doTTLPass()
+               mongo::TTLMonitor::doTTLForIndex(mongo::OperationContext*, mongo::NamespaceString, mongo::BSONObj)
+               mongo::PlanExecutorImpl::executePlan()
+               mongo::PlanExecutorImpl::getNext(mongo::Document*, mongo::RecordId*)
+               mongo::PlanExecutorImpl::_getNextImpl(mongo::Snapshotted<mongo::Document>*, mongo::RecordId*)
+               |          
+                --1.08%--mongo::PlanStage::work(unsigned long*)
+                          mongo::DeleteStage::doWork(unsigned long*)
+                          mongo::PlanStage::restoreState()
+                          mongo::RequiresCollectionStageBase<mongo::Collection const*>::doRestoreState()
+                          mongo::RequiresIndexStage::doRestoreStateRequiresCollection()
+                          mongo::(anonymous namespace)::WiredTigerIndexCursorBase::restore()
+                          mongo::(anonymous namespace)::WiredTigerIndexCursorBase::seekWTCursor(mongo::KeyString::Value const&)
+                          int mongo::wiredTigerPrepareConflictRetry<mongo::(anonymous namespace)::WiredTigerIndexCursorBase::seekWTCursor(mongo::KeyString::Value const&)::{lambda()#1}>(mongo::OperationContext*, mongo::(anonymous namespace)::WiredTigerIndexCursorBase::seekWTCursor(mongo::KeyString::Value const&)::{lambda()#1}&&)
+                          __curfile_search_near
+                          __wt_btcur_search_near
+                          __wt_btcur_prev
+                          __wt_row_leaf_key_work
+
+     0.89%             5  TTLMonitor       mongod            [.] __wt_value_return_buf
+            |
+            ---clone3
+               execute_native_thread_routine
+               std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::BackgroundJob::go()::{lambda()#2}, , 0>(mongo::BackgroundJob::go()::{lambda()#2})::{lambda()#1}> > >::_M_run()
+               mongo::BackgroundJob::jobBody()
+               mongo::TTLMonitor::run()
+               mongo::TTLMonitor::doTTLPass()
+               mongo::TTLMonitor::doTTLForIndex(mongo::OperationContext*, mongo::NamespaceString, mongo::BSONObj)
+               mongo::PlanExecutorImpl::executePlan()
+               mongo::PlanExecutorImpl::getNext(mongo::Document*, mongo::RecordId*)
+               mongo::PlanExecutorImpl::_getNextImpl(mongo::Snapshotted<mongo::Document>*, mongo::RecordId*)
+               mongo::PlanStage::work(unsigned long*)
+               mongo::DeleteStage::doWork(unsigned long*)
+               mongo::PlanStage::restoreState()
+               mongo::RequiresCollectionStageBase<mongo::Collection const*>::doRestoreState()
+               mongo::RequiresIndexStage::doRestoreStateRequiresCollection()
+               mongo::(anonymous namespace)::WiredTigerIndexCursorBase::restore()
+               mongo::(anonymous namespace)::WiredTigerIndexCursorBase::seekWTCursor(mongo::KeyString::Value const&)
+               int mongo::wiredTigerPrepareConflictRetry<mongo::(anonymous namespace)::WiredTigerIndexCursorBase::seekWTCursor(mongo::KeyString::Value const&)::{lambda()#1}>(mongo::OperationContext*, mongo::(anonymous namespace)::WiredTigerIndexCursorBase::seekWTCursor(mongo::KeyString::Value const&)::{lambda()#1}&&)
+               __curfile_search_near
+               __wt_btcur_search_near
+               |          
+                --0.54%--__wt_btcur_prev
+                          __wt_txn_read
+                          __wt_value_return_buf
+
+     0.54%             3  TTLMonitor       mongod            [.] __wt_row_search
+            |
+            ---clone3
+               execute_native_thread_routine
+               std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::BackgroundJob::go()::{lambda()#2}, , 0>(mongo::BackgroundJob::go()::{lambda()#2})::{lambda()#1}> > >::_M_run()
+               mongo::BackgroundJob::jobBody()
+               mongo::TTLMonitor::run()
+               mongo::TTLMonitor::doTTLPass()
+               mongo::TTLMonitor::doTTLForIndex(mongo::OperationContext*, mongo::NamespaceString, mongo::BSONObj)
+               mongo::PlanExecutorImpl::executePlan()
+               mongo::PlanExecutorImpl::getNext(mongo::Document*, mongo::RecordId*)
+               mongo::PlanExecutorImpl::_getNextImpl(mongo::Snapshotted<mongo::Document>*, mongo::RecordId*)
+               mongo::PlanStage::work(unsigned long*)
+               mongo::DeleteStage::doWork(unsigned long*)
+               mongo::CollectionImpl::deleteDocument(mongo::OperationContext*, int, mongo::RecordId, mongo::OpDebug*, bool, bool, mongo::Collection::StoreDeletedDoc)
+
+     0.36%             2  TTLMonitor       mongod            [.] tc_malloc
+     0.36%             2  TTLMonitor       mongod            [.] __tree_walk_internal
+     0.36%             2  TTLMonitor       mongod            [.] snappy::internal::CompressFragment(char const*, unsigned long, char*, unsigned short*, int)
+     0.35%             2  TTLMonitor       mongod            [.] __wt_hazard_set_func
+     0.26%             5  conn16           mongod            [.] __config_next
+     0.18%             1  TTLMonitor       mongod            [.] __wt_config_gets_def
+     0.18%             1  TTLMonitor       mongod            [.] __wt_btcur_insert
+     0.18%             1  TTLMonitor       [unknown]         [k] 0xffffffff9b7f0889
+     0.18%             1  TTLMonitor       mongod            [.] mongo::WiredTigerOplogManager::triggerOplogVisibilityUpdate()
+     0.18%             1  TTLMonitor       mongod            [.] mongo::RequiresCollectionStageBase<mongo::Collection const*>::doRestoreState()
+     0.18%             1  TTLMonitor       mongod            [.] __wt_log_write
+     0.18%             1  TTLMonitor       mongod            [.] mongo::repl::MutableOplogEntry::setOpTime(mongo::repl::OpTime const&) &
+     0.18%             1  TTLMonitor       mongod            [.] __config_getraw.constprop.1
+     0.18%             1  TTLMonitor       mongod            [.] mongo::WiredTigerSession::releaseCursor(unsigned long, __wt_cursor*)
+     0.18%             1  TTLMonitor       mongod            [.] __wt_txn_visible
+     0.18%             1  TTLMonitor       mongod            [.] mongo::FetchStage::isEOF() [clone .part.286]
+     0.18%             1  TTLMonitor       mongod            [.] mongo::BasicBufBuilder<mongo::SharedBufferAllocator>::grow(int)
+     0.18%             1  TTLMonitor       [unknown]         [k] 0xffffffff9c9aab73
+     0.18%             1  TTLMonitor       [unknown]         [k] 0xffffffff9c97ce6e
+     0.18%             1  TTLMonitor       mongod            [.] mongo::WiredTigerRecordStore::_increaseDataSize(mongo::OperationContext*, long)
+     0.18%             1  TTLMonitor       mongod            [.] __wt_calloc
+     0.18%             1  TTLMonitor       mongod            [.] std::pair<std::_Rb_tree_iterator<mongo::repl::OpTimeAndWallTime>, bool> std::_Rb_tree<mongo::repl::OpTimeAndWallTime, mongo::repl::OpTimeAndWallTime, std::_Identity<mongo::repl::OpTimeAndWallTime>, std::less<mongo::repl::OpTimeAndWallTime>, std::allocator<mongo::repl::OpTimeAndWallTime> >::_M_insert_unique<mongo::repl::OpTimeAndWallTime const&>(mongo::repl::OpTimeAndWallTime const&)
+     0.18%             1  TTLMonitor       [unknown]         [k] 0xffffffff9b8a98bd
+     0.18%             1  TTLMonitor       mongod            [.] mongo::IndexScan::doSaveStateRequiresIndex()
+     0.18%             1  TTLMonitor       mongod            [.] __wt_btcur_remove
+     0.18%             1  TTLMonitor       mongod            [.] mongo::LatchAnalyzer::onAcquire(mongo::latch_detail::Identity const&)
+     0.18%             1  TTLMonitor       [unknown]         [k] 0xffffffff9b8a85d2
+     0.18%             1  TTLMonitor       mongod            [.] mongo::mongoMalloc(unsigned long)
+     0.18%             1  TTLMonitor       mongod            [.] bool mongo::FailPoint::shouldFail<decltype(nullptr)>(decltype(nullptr)&&, mongo::FailPoint::ShouldFailEntryMode)
+     0.18%             1  TTLMonitor       mongod            [.] mongo::(anonymous namespace)::onWriteOpCompleted(mongo::OperationContext*, std::vector<int, std::allocator<int> >, mongo::SessionTxnRecord)
+     0.18%             1  TTLMonitor       mongod            [.] __config_next
+     0.18%             1  TTLMonitor       [unknown]         [k] 0xffffffff9b80ee08
+     0.18%             1  TTLMonitor       libc.so.6         [.] __memcmp_avx2_movbe
+     0.18%             1  TTLMonitor       mongod            [.] mongo::OpObserverImpl::aboutToDelete(mongo::OperationContext*, mongo::NamespaceString const&, mongo::BSONObj const&)
+     0.17%             1  TTLMonitor       mongod            [.] mongo::repl::ReplClientInfo::setLastOp(mongo::OperationContext*, mongo::repl::OpTime const&)
+     0.13%             1  ftdc             libc.so.6         [.] __strlen_avx2
+     0.13%             4  ftdc             mongod            [.] __config_next
+     0.11%             2  conn16           mongod            [.] __session_timestamp_transaction
+     0.08%             1  ftdc             [unknown]         [k] 0xffffffff9c98149d
+     0.08%             1  conn16           [unknown]         [k] 0xffffffff9c7baecb
+     0.06%             1  conn16           mongod            [.] __wt_txn_parse_timestamp_raw
+     0.06%             1  TTLMonitor       mongod            [.] mongo::(anonymous namespace)::WiredTigerIndexCursorBase::updatePosition(bool)
+     0.06%             1  conn16           mongod            [.] __wt_row_modify
+     0.06%             1  conn16           [unknown]         [k] 0xffffffff9b8a7983
+     0.05%             1  conn16           mongod            [.] mongo::WiredTigerSession::releaseCursor(unsigned long, __wt_cursor*)
+     0.05%             1  conn16           mongod            [.] __wt_page_in_func
+     0.05%             2  OplogVi.yThread  mongod            [.] mongo::WiredTigerRecordStore::haveCappedWaiters()
+     0.05%             2  OplogVi.yThread  [unknown]         [k] 0xffffffff9b7f028c
+     0.05%             2  OplogVi.yThread  [unknown]         [k] 0xffffffff9b823d53
+     0.05%             2  conn16           libc.so.6         [.] __memmove_avx_unaligned_erms
+     0.05%             1  conn16           mongod            [.] __wt_row_insert_alloc
+     0.05%             1  conn16           mongod            [.] operator new[](unsigned long)
+     0.05%             1  WTJourn.Flusher  [unknown]         [.] 0000000000000000
+     0.05%             1  ftdc             [unknown]         [.] 0000000000000000
+     0.05%             1  IndexBu.ongod-1  mongod            [.] mongo::KeyString::TypeBits::readSizeFromBuffer(mongo::BufReader*)
+     0.04%             1  conn16           [unknown]         [k] 0xffffffff9bbe2cf0
+     0.04%             1  conn16           mongod            [.] __wt_txn_set_timestamp
+     0.04%             1  IndexBu.ongod-1  mongod            [.] std::pair<mongo::KeyString::Value, mongo::NullValue>* std::__move_merge<std::_Deque_iterator<std::pair<mongo::KeyString::Value, mongo::NullValue>, std::pair<mongo::KeyString::Value, mongo::NullValue>&, std::pair<mongo::KeyString::Value, mongo::NullValue>*>, std::pair<mongo::KeyString::Value, mongo::NullValue>*, __gnu_cxx::__ops::_Iter_comp_iter<mongo::sorter::NoLimitSorter<mongo::KeyString::Value, mongo::NullValue, mongo::BtreeExternalSortComparison>::STLComparator> >(std::_Deque_iterator<std::pair<mongo::KeyString::Value, mongo::NullValue>, std::pair<mongo::KeyString::Value, mongo::NullValue>&, std::pair<mongo::KeyString::Value, mongo::NullValue>*>, std::_Deque_iterator<std::pair<mongo::KeyString::Value, mongo::NullValue>, std::pair<mongo::KeyString::Value, mongo::NullValue>&, std::pair<mongo::KeyString::Value, mongo::NullValue>*>, std::_Deque_iterator<std::pair<mongo::KeyString::Value, mongo::NullValue>, std::pair<mongo::KeyString::Value, mongo::NullValue>&, std::pair<mongo::KeyString::Value, mongo::NullValue>*>, std::_Deque_iterator<std::pair<mongo::KeyString::Value, mongo::NullValue>, std::pair<mongo::KeyString::Value, mongo::NullValue>&, std::pair<mongo::KeyString::Value, mongo::NullValue>*>, std::pair<mongo::KeyString::Value, mongo::NullValue>*, __gnu_cxx::__ops::_Iter_comp_iter<mongo::sorter::NoLimitSorter<mongo::KeyString::Value, mongo::NullValue, mongo::BtreeExternalSortComparison>::STLComparator>)
+     0.04%             1  IndexBu.ongod-1  mongod            [.] mongo::StringData::compare(mongo::StringData) const
+     0.04%             1  WTJourn.Flusher  mongod            [.] mongo::OpObserverRegistry::onUpdate(mongo::OperationContext*, mongo::OplogUpdateEntryArgs const&)
+     0.04%             1  WTJourn.Flusher  [unknown]         [k] 0xffffffff9bc5728f
+     0.04%             1  conn16           mongod            [.] mongo::repl::ReplicationCoordinatorImpl::canAcceptWritesForDatabase_UNSAFE(mongo::OperationContext*, mongo::StringData)
+     0.04%             1  IndexBu.ongod-1  mongod            [.] mongo::WiredTigerRecordStoreCursorBase::next()
+     0.04%             1  TTLMonitor       mongod            [.] std::_Rb_tree_insert_and_rebalance(bool, std::_Rb_tree_node_base*, std::_Rb_tree_node_base*, std::_Rb_tree_node_base&)
+     0.03%             1  mongod           [unknown]         [k] 0xffffffff9b4001b4
+     0.03%             1  ftdc             mongod            [.] longest_match
+     0.03%             1  WTJourn.Flusher  mongod            [.] mongo::mutablebson::Document::Impl::Impl(mongo::mutablebson::Document::InPlaceMode)
+     0.03%             1  WTJourn.Flusher  mongod            [.] std::_Rb_tree_rebalance_for_erase(std::_Rb_tree_node_base*, std::_Rb_tree_node_base&)
+     0.03%             1  ftdc             [unknown]         [k] 0xffffffff9b401192
+     0.03%             1  Backgro.kSource  libc.so.6         [.] __pthread_mutex_cond_lock
+     0.03%             1  Backgro.kSource  [unknown]         [k] 0xffffffff9b4001bd
+     0.03%             1  Backgro.kSource  [unknown]         [k] 0xffffffff9b8c9bd7
+     0.03%             1  IndexBu.ongod-1  mongod            [.] mongo::AbstractIndexAccessMethod::BulkBuilderImpl::insert(mongo::OperationContext*, mongo::BSONObj const&, mongo::RecordId const&, mongo::InsertDeleteOptions const&)
+     0.03%             1  OplogVi.yThread  libc.so.6         [.] pthread_cond_timedwait@@GLIBC_2.3.2
+     0.03%             1  OplogVi.yThread  mongod            [.] mongo::(anonymous namespace)::DiagnosticListener::onQuickLock(mongo::latch_detail::Identity const&)
+     0.03%             1  OplogVi.yThread  mongod            [.] mongo::(anonymous namespace)::_mongoInitializerFunction_DiagnosticInfo(mongo::InitializerContext*)::DiagnosticListener::onQuickLock(mongo::latch_detail::Identity const&)
+     0.03%             1  OplogVi.yThread  mongod            [.] mongo::CollectionImpl::haveCappedWaiters()
+     0.03%             1  OplogVi.yThread  [unknown]         [k] 0xffffffff9b400083
+     0.03%             1  OplogVi.yThread  [unknown]         [k] 0xffffffff9b4001b4
+     0.03%             1  OplogVi.yThread  [unknown]         [k] 0xffffffff9b4001bd
+     0.03%             1  OplogVi.yThread  [unknown]         [k] 0xffffffff9b7da625
+     0.03%             1  OplogVi.yThread  [unknown]         [k] 0xffffffff9b7e2d54
+     0.03%             1  OplogVi.yThread  [unknown]         [k] 0xffffffff9b7e84a0
+     0.03%             1  OplogVi.yThread  [unknown]         [k] 0xffffffff9b7ea58f
+     0.03%             1  OplogVi.yThread  [unknown]         [k] 0xffffffff9b7f02c6
+     0.03%             1  OplogVi.yThread  [unknown]         [k] 0xffffffff9b7f4579
+     0.03%             1  OplogVi.yThread  [unknown]         [k] 0xffffffff9b871e00
+     0.03%             1  OplogVi.yThread  [unknown]         [k] 0xffffffff9b8c9018
+     0.03%             1  OplogVi.yThread  [unknown]         [k] 0xffffffff9b8c91bb
+     0.03%             1  OplogVi.yThread  [unknown]         [k] 0xffffffff9b8c92a6
+     0.03%             1  OplogVi.yThread  [unknown]         [k] 0xffffffff9b8cad44
+     0.03%             1  OplogVi.yThread  [unknown]         [k] 0xffffffff9b8cc5b0
+     0.03%             1  OplogVi.yThread  [unknown]         [k] 0xffffffff9b8cc6f9
+     0.03%             1  OplogVi.yThread  [unknown]         [k] 0xffffffff9b8cf460
+     0.03%             1  OplogVi.yThread  [unknown]         [k] 0xffffffff9b8cf50d
+     0.03%             1  OplogVi.yThread  [unknown]         [k] 0xffffffff9c980fa0
+     0.03%             1  OplogVi.yThread  [unknown]         [k] 0xffffffff9c980fd2
+     0.03%             1  OplogVi.yThread  [unknown]         [k] 0xffffffff9c992650
+     0.03%             1  OplogVi.yThread  [unknown]         [.] 0000000000000000
+     0.03%             1  TTLMonitor       mongod            [.] mongo::ScopedTimer::ScopedTimer(mongo::ClockSource*, long long*)
+     0.03%             1  WTJourn.Flusher  mongod            [.] __wt_btcur_cache
+     0.03%             1  WTJourn.Flusher  mongod            [.] mongo::RecoveryUnit::RecoveryUnit()
+     0.03%             1  WTJourn.Flusher  mongod            [.] void mongo::DecorationRegistry<mongo::OperationContext>::constructAt<mongo::PrepareConflictTracker>(void*)
+     0.03%             1  WTJourn.Flusher  [unknown]         [k] 0xffffffff9bd6e0a1
+     0.03%             1  conn16           libc.so.6         [.] __strncmp_avx2
+     0.03%             1  ftdc             [unknown]         [k] 0xffffffff9bad0b69
+     0.03%             1  ftdc             [unknown]         [k] 0xffffffff9bcb570b
+     0.03%             1  mongod           mongod            [.] tc_calloc
+     0.03%             1  mongod           [unknown]         [k] 0xffffffff9b40009c
+     0.03%             1  mongod           [unknown]         [k] 0xffffffff9b7e6dbc
+     0.03%             1  mongod           [unknown]         [k] 0xffffffff9bc4df23
+     0.03%             1  conn16           mongod            [.] __wt_cursor_set_valuev
+
+
+#
+# (Cannot load tips.txt file, please install perf!)
+#
