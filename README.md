@@ -2,8 +2,6 @@
 
 **TTL deletes ~3.4× slower on descending indexes than ascending (MongoDB 4.4.0 regression)**
 
-Author: Kushal Krishnappa | Date: 2026-04-21 | Severity: Major – P3 | Status: Fixed (Oct 2022)
-
 ---
 
 ## Report
@@ -23,11 +21,9 @@ scripts/
   05_install_profiling.sh    # Install linux-perf, clone FlameGraph repo
   06_profile_ttl.sh          # perf record both runs → perf_*_report.txt
   07_generate_flamegraphs.sh # Convert perf data to SVG flamegraphs
-  08_build_instrumented.sh   # (Phase 3) Clone + patch WiredTiger source, build mongod
-  09_run_instrumented.sh     # (Phase 3) Run repro against instrumented binary
 
-flamegraph_asc.svg           # Flamegraph: ASC run (fast) — restoreState is a thin sliver
-flamegraph_desc.svg          # Flamegraph: DESC run (slow) — restoreState dominates
+flamegraph_asc.svg           # Flamegraph: ASC run (fast) — restoreState is a thin tower
+flamegraph_desc.svg          # Flamegraph: DESC run (slow) — restoreState dominates - wide tower
 perf_asc_report.txt          # perf call-stack report: ASC run
 perf_desc_report.txt         # perf call-stack report: DESC run (contains the bug signature)
 ```
@@ -36,7 +32,7 @@ perf_desc_report.txt         # perf call-stack report: DESC run (contains the bu
 
 ## Quick Reproduction
 
-Requires: Ubuntu 20.04/22.04/24.04 x86_64, ~500MB free disk, internet access.
+Requires: Ubuntu 24.04 x86_64, ~500MB free disk, internet access.
 
 ```bash
 bash scripts/01_setup_env.sh          # ~30s — downloads MongoDB 4.4.0
@@ -78,8 +74,7 @@ Adds `fprintf` probes directly into WiredTiger's `__wt_btcur_search_near` to pri
 tombstone traversal, making the O(n²) growth visible in log output.
 
 ```bash
-bash scripts/08_build_instrumented.sh   # clones mongo r4.4.0, patches bt_cursor.c, builds
-bash scripts/09_run_instrumented.sh     # → instrumented_asc.log, instrumented_desc.log
+TODO - Build failing on Ubuntu24.04
 ```
 
 ---
