@@ -68,17 +68,6 @@ In `perf_desc_report.txt`, `__wt_btcur_search_near` shows **both** `__wt_btcur_n
 
 ---
 
-## Instrumented Source Build
-
-Adds `fprintf` probes directly into WiredTiger's `__wt_btcur_search_near` to print each
-tombstone traversal, making the O(n²) growth visible in log output.
-
-```bash
-TODO - Build failing on Ubuntu24.04
-```
-
----
-
 ## References
 
 - [MongoDB Jira SERVER-56274](https://jira.mongodb.org/browse/SERVER-56274) — original bug report
