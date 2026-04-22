@@ -26,3 +26,4 @@ mongo_source/
 
 # Misc
 .DS_Store
+.*venv/

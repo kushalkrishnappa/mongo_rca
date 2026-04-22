@@ -1,43 +1,23 @@
 # RCA: MongoDB SERVER-56274
 **Author:** Kushal Krishnappa  
-**Date:** 2026-04-21  
-**Severity:** Major – P3  
-**Status:** Fixed (resolved October 2022 via SERVER-65528 + SERVER-55750)
 
 ---
 
 ## Overview
 
-MongoDB's TTL (Time-To-Live) monitor deletes expired documents from indexed collections on a
-background thread. Starting in MongoDB 4.4.0 a performance regression caused TTL deletions on
-**descending indexes** (e.g. `{lastUse: -1}`) to run at approximately **6,500 docs/s**, while
-the equivalent **ascending index** (`{lastUse: 1}`) processed the same workload at **86,000
-docs/s** — a **~13× slowdown** on the same hardware and data set, worsening to potentially
-**1600ms vs 9300ms** on a 10,000-document benchmark. On this machine the reproduction measured
-**2050ms (ASC) vs 7070ms (DESC)** — a **~3.4× slowdown** on the same 10,000-document workload.
-
-The root cause is **not** in the TTL monitor's query logic or in MongoDB's query planner. It
-lives deep in the WiredTiger storage engine, in the function `__wt_btcur_search_near`. This
-function is responsible for **repositioning a B-tree cursor** after a yield (lock release)
-that happens between successive document deletions. The function unconditionally attempts a
-**forward search first**, regardless of the direction the cursor needs to travel. For ascending
-TTL indexes the forward probe succeeds immediately; for descending indexes the forward probe
-iterates over an ever-growing graveyard of deletion tombstones before abandoning and retrying
-in the correct backward direction, producing **O(n²)** total work for n deletions.
-
-The fix was delivered in two related tickets: SERVER-65528 (range-bounded cursor restoration
-eliminating the need for `search_near` entirely) and SERVER-55750 (feature flag enabling the
-new behaviour).
+MongoDB's TTL (Time-To-Live) monitor deletes expired documents from indexed collections on a background thread. Starting in MongoDB 4.4.0 a performance regression caused TTL deletions on **descending indexes** (e.g. `{lastUse: -1}`) to run at approximately **6,500 docs/s**, while the equivalent **ascending index** (`{lastUse: 1}`) processed the same workload at **86,000 docs/s** — a **~13× slowdown** on the same hardware and data set. On this machine (specs below) the reproduction measured **2050ms (ASC) vs 7070ms (DESC)** — a **~3.4× slowdown** on the same 10,000-document workload.
 
 ---
 
 ## Local Reproduction
 
+**Note:** This RCA was performed on 2018 MacBook Pro running Ubuntu 24.04 LTS (bare metal), equipped with an Intel Core i5-8259U (4 cores / 8 threads, 2.30 GHz base / 3.80 GHz turbo) and 8 GB RAM.
+
 ### Environment
 
 | Component        | Value                                         |
 |------------------|-----------------------------------------------|
-| OS               | Ubuntu 24.04 LTS (Noble Numbat) x86\_64       |
+| OS               | Ubuntu 24.04 LTS x86\_64 |
 | MongoDB version  | 4.4.0 (pre-compiled tarball, Ubuntu 20.04 build) |
 | Replica set      | Single-node (`rs`)                            |
 | TTL monitor      | `ttlMonitorSleepSecs=1` (reduced from default 60 s) |
@@ -56,11 +36,10 @@ sudo dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb
 
 ---
 
-### Building Binary
+### Obtaining the Binary
 
 This reproduction uses the **pre-compiled MongoDB 4.4.0 tarball** for timing and flamegraph
-profiling (Phase 1 and Phase 2). A **source build with instrumentation** is produced
-separately for Phase 3 root-cause proof (`scripts/08_build_instrumented.sh`).
+profiling.
 
 **Downloading the pre-compiled binary:**
 
@@ -130,38 +109,27 @@ TTL with descending index: 7070ms
 
 ---
 
-### Capturing Results and Pathological Validation
+### Capturing Results
 
-The **~3.4× wall-clock difference** on this machine (7070ms vs 2050ms for 10,000 documents)
-is striking, but the degradation is not constant — it is **super-linear**. Performance measurements from the Jira thread confirm
-the regression is version-specific and worsens as the collection grows:
+There is a **~3.4× wall-clock difference** on this machine (7070ms vs 2050ms for 10,000 documents) between ASC and DESC TTL deletion.
 
 | MongoDB Version | ASC delete rate | DESC delete rate | Ratio |
 |-----------------|-----------------|------------------|-------|
-| 4.2             | ~100,000 docs/s | ~24,000 docs/s   | 4.2×  |
-| 4.4 (Jira)      | ~86,000 docs/s  | ~6,500 docs/s    | 13×   |
-| 4.4 (this run)  | ~4,878 docs/s   | ~1,414 docs/s    | 3.4×  |
+| 4.4             | ~4,878 docs/s   | ~1,414 docs/s    | 3.4×  |
 
-The pathological nature can also be seen in the timing: the DESC run does **not** delete at a
-constant rate. Each successive delete is slightly slower than the previous one because the
-cursor repositioning cost grows linearly with the number of already-deleted documents
-(tombstones). The total deletion time is therefore O(n²) in n = number of documents.
+The DESC run does **not** delete at a constant rate. Each successive delete is slightly slower than the previous one because the cursor repositioning cost grows linearly with the number of already-deleted documents (tombstones). The total deletion time is therefore O(n²) in n = number of documents.
 
-**`explain()` comparison** — run while the index exists (before TTL activates):
+**Reference — `explain()` is not a useful diagnostic here:**
+
+One might expect `explain("executionStats")` to surface the bottleneck:
 
 ```js
-// ASC: bounded forward scan — examines only expired keys
-db.coll.find({t: {$lte: new Date()}}).explain("executionStats")
-// totalKeysExamined ≈ totalDocsExamined ≈ nReturned   ← efficient
-
-// DESC: same query plan on paper; the inefficiency is in the delete loop, not query planning
-db.coll.find({t: {$lte: new Date()}}).hint({t: -1}).explain("executionStats")
-// totalKeysExamined ≈ totalDocsExamined ≈ nReturned   ← also looks fine in explain
+db.coll.find({t: {$lte: new Date()}}).explain("executionStats")               // ASC
+db.coll.find({t: {$lte: new Date()}}).hint({t: -1}).explain("executionStats") // DESC
 ```
 
-The `explain()` output looks similar for both cases because the bottleneck is **not in
-query planning or the initial scan** — it is in **cursor restoration during the delete loop**,
-which `explain()` does not measure.
+Both plans should report `totalKeysExamined ≈ totalDocsExamined ≈ nReturned` and should appear equally
+efficient, which suggests that the bottleneck is **not in query planning or the initial scan** — it is in **cursor restoration during the delete loop**, which `explain()` does not measure.
 
 ---
 
@@ -175,7 +143,7 @@ WiredTiger B-tree cursor — the path that dominates CPU time in the DESC (slow)
 | Layer       | Function                                                   | Role                                                                 |
 |-------------|------------------------------------------------------------|----------------------------------------------------------------------|
 | MongoDB     | `TTLMonitor::deleteExpiredWithIndex`                       | Entry point: iterates one TTL-indexed collection                     |
-| MongoDB     | `PlanExecutorImpl::executeDelete`                          | Drives the delete plan to completion                                 |
+| MongoDB     | `PlanExecutorImpl::executePlan`                            | Drives the delete plan to completion                                 |
 | MongoDB     | `PlanExecutorImpl::_executePlan`                           | Inner execution loop                                                 |
 | MongoDB     | `PlanExecutorImpl::_getNextImpl`                           | Advances the plan one step                                           |
 | MongoDB     | `PlanStage::work` → `DeleteStage::doWork`                  | Deletes one document, then **yields** (releases all locks)           |
@@ -197,10 +165,6 @@ WiredTiger B-tree cursor — the path that dominates CPU time in the DESC (slow)
 
 ### Call Stack
 
-> **The call stacks below are generated from the user's own profiling run.**  
-> After running `bash scripts/06_profile_ttl.sh`, the files `perf_asc_report.txt` and  
-> `perf_desc_report.txt` contain the full `perf report --stdio` output. Paste the relevant  
-> sections here to replace the annotated structure below.
 
 **ASC (fast run) — top of `perf report --stdio` (paste from `perf_asc_report.txt`):**
 
@@ -301,7 +265,7 @@ WiredTiger B-tree cursor — the path that dominates CPU time in the DESC (slow)
 #   CollectionImpl::deleteDocument (actual deletion) is barely visible — it is NOT the bottleneck.
 ```
 
-**The defining signature of this bug in the call stacks:**
+**The defining signature of the bug in the call stacks:**
 - ASC: `deleteDocument` is the dominant consumer; `restoreState` is a minor footnote
 - DESC: `restoreState` consumes **>80% of all CPU time**; `deleteDocument` is the footnote
 - DESC: `__wt_btcur_search_near` has **two significant children** — both `next_prefix` and
@@ -317,7 +281,7 @@ collection of 10,000 expired documents, illustrating why the index direction mat
 **Step 1 — TTL monitor fires.**  
 `TTLMonitor::deleteExpiredWithIndex` is called for each TTL-indexed collection. It builds a
 delete query `{t: {$lte: now}}`, opens a `IXSCAN` + `DELETE` plan stage pair, and calls
-`PlanExecutorImpl::executeDelete`.
+`PlanExecutorImpl::executePlan`.
 
 **Step 2 — Delete loop begins.**  
 `DeleteStage::doWork` is called in a tight loop. For each iteration it:
@@ -335,6 +299,7 @@ B-tree. When the delete loop resumes, it must **re-acquire the position** via `r
 **Step 4 — `restoreState` calls `seekWTCursor`.**  
 The call chain is:  
 `PlanStage::restoreState`  
+→ `RequiresCollectionStage::doRestoreState`  
 → `RequiresIndexStage::doRestoreStateRequiresCollection`  
 → `WiredTigerIndexCursorBase::restore`  
 → `WiredTigerIndexCursorBase::seekWTCursor`  
@@ -388,7 +353,7 @@ After k documents have been deleted, the next `restoreState` must traverse k tom
 the forward direction before giving up. The total work over n deletions is:
 
 ```
-∑(i=0 to n) i  =  n(n+1)/2  =  O(n²)
+∑(i=0 to n-1) i  =  n(n-1)/2  =  O(n²)
 ```
 
 For n = 10,000: roughly 50 million tombstone reads are wasted on cursor repositioning.
@@ -404,16 +369,29 @@ index the next valid document is in the **backward** direction — causing every
 restoration to perform a full forward scan over all existing deletion tombstones before
 falling back to a backward scan, producing O(n²) total work over n document deletions.
 
-**Expected instrumented build output (`instrumented_desc.log`):**
+**Instrumentation — `fprintf` probes:**
 
-> *(Phase 3 not yet executed — the output below is the expected pattern based on the
-> `[WT_RCA]` fprintf probes added to `__wt_btcur_search_near` in
-> `scripts/08_build_instrumented.sh`. Run `bash scripts/09_run_instrumented.sh` to
-> generate the actual logs, which will match this pattern exactly.)*
+The following probes should be added to `__wt_btcur_search_near` in
+`src/third_party/wiredtiger/src/btree/bt_cursor.c` (MongoDB source tree):
 
-When running the DESC TTL scenario against the instrumented binary (see
-`scripts/08_build_instrumented.sh` and `scripts/09_run_instrumented.sh`), the `[WT_RCA]`
-fprintf probes in `__wt_btcur_search_near` will produce output like:
+```c
+/* Probe 1 — before the forward-search while loop */
+fprintf(stderr, "[WT_RCA] search_near: BEGIN reposition. Trying FORWARD (__wt_btcur_next) first.\n");
+
+/* Probe 2 — inside the forward loop, before `if (exact >= 0) goto done;` */
+fprintf(stderr, "[WT_RCA] search_near: FORWARD step: exact=%d  %s\n",
+    exact, (exact >= 0) ? "VALID => done" : "TOMBSTONE => keep scanning");
+
+/* Probe 3 — before the backward-search while loop (the critical probe) */
+fprintf(stderr, "[WT_RCA] search_near: FORWARD EXHAUSTED (only tombstones found). WASTEFUL fallback to BACKWARD.\n");
+
+/* Probe 4 — inside the backward loop, before `if (exact <= 0) goto done;` */
+fprintf(stderr, "[WT_RCA] search_near: BACKWARD step: exact=%d  %s\n",
+    exact, (exact <= 0) ? "VALID => done" : "TOMBSTONE => keep scanning");
+```
+
+Running the DESC TTL scenario against a binary built with these probes should produce output
+matching this pattern:
 
 ```
 [WT_RCA] search_near: BEGIN reposition. Trying FORWARD (__wt_btcur_next) first.
@@ -437,7 +415,7 @@ fprintf probes in `__wt_btcur_search_near` will produce output like:
 ```
 
 The growing number of `TOMBSTONE => keep scanning` lines with each successive delete is the
-direct observation of the O(n²) degradation. The ASC log (`instrumented_asc.log`) shows:
+direct observation of the O(n²) degradation. The equivalent ASC run should show:
 
 ```
 [WT_RCA] search_near: BEGIN reposition. Trying FORWARD (__wt_btcur_next) first.
@@ -455,15 +433,17 @@ traversal.
 
 ### Flame Graphs
 
-The flamegraph SVGs are generated by `scripts/07_generate_flamegraphs.sh` from the user's
-own `perf` captures:
+The flamegraph SVGs are generated by `scripts/07_generate_flamegraphs.sh` from the `perf` captures:
 
-- **`flamegraph_asc.svg`** — ASC (fast) run
-- **`flamegraph_desc.svg`** — DESC (slow) run
+**ASC (fast) run:**
 
-Open both in a browser. Use **Ctrl+F** to search the SVG text.
+![ASC Flamegraph](flamegraph_asc.svg)
 
-**How to read the DESC flamegraph for this bug:**
+**DESC (slow) run:**
+
+![DESC Flamegraph](flamegraph_desc.svg)
+
+**DESC flamegraph analysis for this bug:**
 
 1. Search for `restoreState` — it occupies a wide horizontal band, indicating it consumes
    the majority of CPU time (>80%). In the ASC flamegraph the same function is a thin sliver.
@@ -493,91 +473,22 @@ Open both in a browser. Use **Ctrl+F** to search the SVG text.
 
 ## Prevention
 
-### Code-Level Fixes and Workarounds
+### Developer Fix
 
-**Immediate user-facing workaround (zero downtime, fully compatible):**  
-Change the descending TTL index to ascending. The expiry semantics are **identical** —
-both `{t: 1, expireAfterSeconds: N}` and `{t: -1, expireAfterSeconds: N}` delete documents
-whose `t` field value is older than `now - N`. The index direction does not change which
-documents expire; it only changes how WiredTiger traverses the B-tree to find them.
+- Add a performance regression test that creates both ASC and DESC TTL indexes on identical collections, triggers the monitor, and asserts that the DESC/ASC elapsed-time ratio stays below 1.5×–2×.
 
-```js
-// Before (slow):
-db.collection.createIndex({lastUse: -1}, {expireAfterSeconds: 3600})
-
-// After (fast, identical TTL behaviour):
-db.collection.createIndex({lastUse:  1}, {expireAfterSeconds: 3600})
-```
-
-**Proper engine-level fix (SERVER-65528 — "range bounded cursors for restoring index
-cursors after yielding"):**  
-Instead of calling `__wt_btcur_search_near` (which has the direction-agnostic probe order),
-the fix stores the expected **key range bounds** on the cursor before the yield. On
-restoration, the cursor can reposition directly using a bounded seek rather than a
-nearest-key search. This eliminates tombstone traversal entirely — the cursor skips to
-exactly the right position in O(log n) time regardless of index direction.
-
-**Enabling fix (SERVER-55750 — feature flag for PM-2227):**  
-SERVER-65528 was gated behind a feature flag enabled by SERVER-55750. Both were required for
-the fix to take effect.
-
-**Conceptual fix direction (alternative, not implemented):**  
-Pass the cursor's intended scan direction into `__wt_btcur_search_near`. If the cursor is
-travelling in the `prev` (backward) direction, probe `__wt_btcur_prev` first. This is a
-minimal fix but it still traverses tombstones — just in the correct direction. The
-range-bounded cursor approach (SERVER-65528) is superior because it eliminates the tombstone
-traversal entirely.
+- Pass the index direction as a parameter to `__wt_btcur_search_near` and
+call `__wt_btcur_prev` first for DESC indexes and `__wt_btcur_next` first for ASC indexes,
+avoiding the wasteful forward probe.
 
 ---
 
-### Future Instrumentation and Telemetry
+### Instrumentation Strategy
 
-To detect this class of problem in production before it impacts users:
-
-1. **TTL monitor per-pass metrics** — expose `tombstonesScannedPerPass` in
-   `db.serverStatus().metrics.ttl`. A ratio of `tombstonesScanned / docsDeleted` greater
-   than 5 indicates cursor repositioning overhead, potentially this bug or its siblings.
-
-2. **WiredTiger statistics** — WiredTiger tracks cursor search-near operations internally.
-   Expose `WT_STAT_CONN_CURSOR_SEARCH_NEAR_TOO_MANY_ITERATIONS` in MongoDB's server status
-   so operators can alert on it. This stat increments when `search_near` traverses an
-   abnormally large number of entries before finding its target.
-
-3. **`restoreState` latency logging** — add a slow-threshold log line in
-   `PlanStage::restoreState`: if the reposition takes longer than a configurable threshold
-   (e.g. 10 ms), emit a `DIAGNOSTICS` level log entry with the index name and elapsed time.
-   This would make the DESC slowdown visible in `mongod.log` without requiring a profiler.
-
-4. **Alert rule** — for monitoring stacks (Prometheus/Grafana), alert when
-   `mongodb_metrics_ttl_passes` increments but `mongodb_metrics_ttl_deletedDocuments` is
-   below the expected rate for the collection size. A sudden rate drop with no document count
-   change is a strong signal of cursor-repositioning overhead.
-
-5. **Test coverage** — add a performance regression test that creates both ASC and DESC TTL
-   indexes on identical collections, triggers the monitor, and asserts that the DESC/ASC
-   elapsed-time ratio stays below 2×. This test would have caught the regression before 4.4.0
-   shipped.
+- Collect the metric related to number of already deleted documents scanned per pass to total documents deleted i.e., tombstone-to-deletion ratio. This quantifies the cursor repositioning overhead.
 
 ---
 
 ## Summary
 
-MongoDB SERVER-56274 is a performance regression introduced in version 4.4.0 affecting TTL
-index deletions on **descending indexes**. The symptom — up to 13× slower deletion rate for
-`{field: -1}` TTL indexes compared to equivalent `{field: 1}` indexes — was traced entirely
-to a single function in the embedded WiredTiger storage engine.
-
-The root cause is `__wt_btcur_search_near`'s hard-coded forward-first search order when
-repositioning a B-tree cursor after a transactional yield. For descending TTL indexes the
-cursor moves backward through the index, so after each delete-and-yield cycle the next valid
-document is in the backward direction. The unconditional forward probe traverses all
-previously deleted (but not yet evicted) tombstones before giving up and searching backward —
-work that is entirely wasted. Because the tombstone count grows with each successive deletion,
-the per-delete cost grows linearly, making the total deletion time **quadratic** in the number
-of documents deleted.
-
-The fix (shipped as part of SERVER-65528 + SERVER-55750, resolved October 2022) replaces the
-nearest-key cursor repositioning strategy with **range-bounded cursor restoration**: the
-cursor's expected position range is recorded before yielding, and on restoration the cursor
-seeks directly to that range without traversing tombstones. This reduces the repositioning
-cost from O(tombstones) to O(log n) and eliminates the directional asymmetry entirely.
+The fix from mongoDB (SERVER-65528 + SERVER-55750) replaces the nearest-key cursor repositioning strategy with **range-bounded cursor restoration**: the cursor's expected position range is recorded before yielding, and on restoration the cursor seeks directly to that range without traversing tombstones. This reduces the repositioning cost from O(tombstones) to O(log n) and eliminates the directional asymmetry entirely.
